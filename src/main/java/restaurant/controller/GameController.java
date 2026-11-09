@@ -3,6 +3,8 @@ package restaurant.controller;
 import restaurant.cli.ConsoleUI;
 import restaurant.model.Customer;
 import restaurant.model.CustomerState;
+import restaurant.model.GameConfig;
+import restaurant.model.GameResult;
 import restaurant.model.Order;
 import restaurant.model.OrderStatus;
 import restaurant.model.Restaurant;
@@ -39,10 +41,34 @@ public class GameController {
      * Runs the full 18-turn game loop with no early termination.
      */
     public void runGame() {
-        for (int turn = 1; turn <= Restaurant.MAX_TURNS; turn++) {
+        for (int turn = 1; turn <= restaurant.getConfig().getMaxTurns(); turn++) {
             runTurn(turn);
         }
-        ui.displayFinalResult(restaurant);
+        ui.displayFinalResult(evaluateGameResult());
+    }
+
+    public GameResult evaluateGameResult() {
+        GameConfig config = restaurant.getConfig();
+        double avgSat = restaurant.getAveragePaidSatisfaction();
+        int paidCount = restaurant.getPaidCustomersCount();
+        int revCents = restaurant.getRevenueCents();
+        int abandonedCount = restaurant.getAbandonedCustomersCount();
+
+        boolean victory = config.isVictory(paidCount, revCents, avgSat);
+
+        return new GameResult(
+                victory,
+                paidCount,
+                config.getTargetPaidCustomers(),
+                config.isPaidTargetMet(paidCount),
+                revCents,
+                config.getTargetRevenueCents(),
+                config.isRevenueTargetMet(revCents),
+                avgSat,
+                config.getTargetAvgSatisfaction(),
+                config.isSatisfactionTargetMet(avgSat),
+                abandonedCount
+        );
     }
 
     /**

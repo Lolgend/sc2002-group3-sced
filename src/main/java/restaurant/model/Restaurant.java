@@ -11,14 +11,15 @@ import java.util.Objects;
 import java.util.Random;
 
 public class Restaurant {
-    public static final int MAX_TURNS = 18;
-    public static final int NUM_TABLES = 2;
-    public static final int[] ARRIVAL_TURNS = {1, 4, 7, 10, 13, 16};
-    public static final int TARGET_PAID_CUSTOMERS = 4;
-    public static final int TARGET_REVENUE_CENTS = 4500; // $45.00
-    public static final double TARGET_AVG_SATISFACTION = 60.0;
-    public static final long DEFAULT_SEED = 42L;
+    public static final int MAX_TURNS = GameConfig.DEFAULT_MAX_TURNS;
+    public static final int NUM_TABLES = GameConfig.DEFAULT_NUM_TABLES;
+    public static final int[] ARRIVAL_TURNS = GameConfig.DEFAULT_ARRIVAL_TURNS;
+    public static final int TARGET_PAID_CUSTOMERS = GameConfig.DEFAULT_TARGET_PAID_CUSTOMERS;
+    public static final int TARGET_REVENUE_CENTS = GameConfig.DEFAULT_TARGET_REVENUE_CENTS;
+    public static final double TARGET_AVG_SATISFACTION = GameConfig.DEFAULT_TARGET_AVG_SATISFACTION;
+    public static final long DEFAULT_SEED = GameConfig.DEFAULT_SEED;
 
+    private final GameConfig config;
     private final WaitingQueue waitingQueue;
     private final List<Table> tables;
     private final Menu menu;
@@ -38,13 +39,18 @@ public class Restaurant {
     private int abandonedCustomersCount;
 
     public Restaurant() {
-        this(DEFAULT_SEED);
+        this(new GameConfig());
     }
 
     public Restaurant(long seed) {
+        this(new GameConfig(seed));
+    }
+
+    public Restaurant(GameConfig config) {
+        this.config = Objects.requireNonNull(config, "GameConfig cannot be null");
         this.waitingQueue = new WaitingQueue();
         List<Table> tableList = new ArrayList<>();
-        for (int i = 1; i <= NUM_TABLES; i++) {
+        for (int i = 1; i <= config.getNumTables(); i++) {
             tableList.add(new Table(i));
         }
         this.tables = Collections.unmodifiableList(tableList);
@@ -53,7 +59,7 @@ public class Restaurant {
         this.waiter = new Waiter("Waiter");
         this.chef = new Chef("Chef");
         this.cashier = new Cashier("Cashier");
-        this.random = new Random(seed);
+        this.random = new Random(config.getSeed());
 
         this.nextCustomerId = 1;
         this.nextOrderId = 1;
@@ -63,6 +69,10 @@ public class Restaurant {
         this.paidCustomersCount = 0;
         this.totalPaidSatisfaction = 0;
         this.abandonedCustomersCount = 0;
+    }
+
+    public GameConfig getConfig() {
+        return config;
     }
 
     public WaitingQueue getWaitingQueue() {
@@ -147,18 +157,10 @@ public class Restaurant {
         this.totalPaidSatisfaction += order.getCustomer().getSatisfaction();
     }
 
-    /**
-     * Checks if a customer arrives on the given turn.
-     */
+    // Checks if a customer arrives on the given turn.
+     
     public Customer processArrival(int turn) {
-        boolean arrives = false;
-        for (int arrivalTurn : ARRIVAL_TURNS) {
-            if (arrivalTurn == turn) {
-                arrives = true;
-                break;
-            }
-        }
-        if (!arrives) {
+        if (!config.isArrivalTurn(turn)) {
             return null;
         }
         Customer customer = createCustomer(nextCustomerId++, turn);
@@ -220,21 +222,9 @@ public class Restaurant {
     }
 
     /**
-     * Evaluates victory condition after Turn 18:
-     * - Paid customers >= 4
-     * - Revenue >= $45.00 (4500 cents)
-     * - Average satisfaction of paid customers >= 60.0
+     * Evaluates victory condition after Turn 18.
      */
     public boolean isVictory() {
-        if (paidCustomersCount < TARGET_PAID_CUSTOMERS) {
-            return false;
-        }
-        if (revenueCents < TARGET_REVENUE_CENTS) {
-            return false;
-        }
-        if (paidCustomersCount == 0) {
-            return false;
-        }
-        return getAveragePaidSatisfaction() >= TARGET_AVG_SATISFACTION;
+        return config.isVictory(paidCustomersCount, revenueCents, getAveragePaidSatisfaction());
     }
 }

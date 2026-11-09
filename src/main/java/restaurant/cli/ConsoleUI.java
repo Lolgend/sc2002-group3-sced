@@ -1,7 +1,7 @@
 package restaurant.cli;
 
 import restaurant.model.Customer;
-import restaurant.model.CustomerState;
+import restaurant.model.GameResult;
 import restaurant.model.Order;
 import restaurant.model.Restaurant;
 import restaurant.model.Table;
@@ -40,7 +40,7 @@ public class ConsoleUI {
     public void displayStartOfTurn(int turn, Restaurant restaurant) {
         out.println();
         out.println("================================================================================");
-        out.printf("                              TURN %d OF %d%n", turn, Restaurant.MAX_TURNS);
+        out.printf("                              TURN %d OF %d%n", turn, restaurant.getConfig().getMaxTurns());
         out.println("================================================================================");
         out.printf("  Revenue: %-8s | Paid Customers: %-2d | Avg Satisfaction: %-4s | Abandoned: %-2d%n",
                 formatMoney(restaurant.getRevenueCents()),
@@ -197,20 +197,20 @@ public class ConsoleUI {
         out.printf("  Unhappy Departures      : %d%n", restaurant.getAbandonedCustomersCount());
         out.printf("  Current Revenue         : %s%n", formatMoney(restaurant.getRevenueCents()));
         out.printf("  Average Satisfaction    : %s%n", restaurant.getAveragePaidSatisfactionString());
-        out.printf("  Turns Used              : %d / %d%n", turn, Restaurant.MAX_TURNS);
+        out.printf("  Turns Used              : %d / %d%n", turn, restaurant.getConfig().getMaxTurns());
     }
 
     /**
-     * Renders Final Game Result.
+     * Renders Final Game Result from structured evaluation.
+     * Prevents game rule evaluation logic from leaking into UI boundaries.
      */
-    public void displayFinalResult(Restaurant restaurant) {
+    public void displayFinalResult(GameResult result) {
         out.println();
         out.println("================================================================================");
         out.println("                               GAME OVER");
         out.println("================================================================================");
 
-        boolean victory = restaurant.isVictory();
-        if (victory) {
+        if (result.isVictory()) {
             out.println("                         *** VICTORY! ***");
             out.println("  Congratulations Manager! All restaurant objectives have been achieved!");
         } else {
@@ -220,25 +220,21 @@ public class ConsoleUI {
         out.println("--------------------------------------------------------------------------------");
         out.println("Final Objectives Breakdown:");
 
-        boolean paidPass = restaurant.getPaidCustomersCount() >= Restaurant.TARGET_PAID_CUSTOMERS;
         out.printf("  1. Paid Customers    : %d / %d required       [%s]%n",
-                restaurant.getPaidCustomersCount(), Restaurant.TARGET_PAID_CUSTOMERS,
-                paidPass ? "PASS" : "FAIL");
+                result.paidCustomersCount(), result.targetPaidCustomers(),
+                result.paidCustomersTargetMet() ? "PASS" : "FAIL");
 
-        boolean revPass = restaurant.getRevenueCents() >= Restaurant.TARGET_REVENUE_CENTS;
         out.printf("  2. Total Revenue     : %s / %s required    [%s]%n",
-                formatMoney(restaurant.getRevenueCents()),
-                formatMoney(Restaurant.TARGET_REVENUE_CENTS),
-                revPass ? "PASS" : "FAIL");
+                formatMoney(result.revenueCents()),
+                formatMoney(result.targetRevenueCents()),
+                result.revenueTargetMet() ? "PASS" : "FAIL");
 
-        double avgSat = restaurant.getAveragePaidSatisfaction();
-        boolean satPass = !Double.isNaN(avgSat) && avgSat >= Restaurant.TARGET_AVG_SATISFACTION;
         out.printf("  3. Avg Satisfaction  : %s / %.1f required      [%s]%n",
-                restaurant.getAveragePaidSatisfactionString(),
-                Restaurant.TARGET_AVG_SATISFACTION,
-                satPass ? "PASS" : "FAIL");
+                result.getAveragePaidSatisfactionString(),
+                result.targetAverageSatisfaction(),
+                result.satisfactionTargetMet() ? "PASS" : "FAIL");
 
-        out.printf("  Unhappy Departures   : %d%n", restaurant.getAbandonedCustomersCount());
+        out.printf("  Unhappy Departures   : %d%n", result.abandonedCustomersCount());
         out.println("================================================================================");
     }
 }
