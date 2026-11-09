@@ -52,7 +52,7 @@ public class Waiter extends Staff {
         }
 
         MenuItem chosenItem = customer.chooseMenuItem(menu, random);
-        int finalPriceCents = customer.calculateBillCents(chosenItem.getPriceCents());
+        int finalPriceCents = chosenItem.getPriceCents();
         Order order = new Order(orderId, customer, table, chosenItem, finalPriceCents);
         table.assignOrder(order);
         return order;

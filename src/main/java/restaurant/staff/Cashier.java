@@ -23,7 +23,6 @@ public class Cashier extends Staff {
     }
 
     public Order processOldestReadyPayment(List<Table> tables) {
-        markActed();
         Objects.requireNonNull(tables, "Tables list cannot be null");
 
         Table oldestReadyTable = null;
@@ -45,6 +44,7 @@ public class Cashier extends Staff {
             return null;
         }
 
+        markActed();
         Customer customer = oldestReadyTable.getCurrentCustomer();
         Order order = oldestReadyTable.getCurrentOrder();
 

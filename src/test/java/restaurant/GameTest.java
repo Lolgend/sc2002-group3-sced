@@ -117,7 +117,7 @@ public class GameTest {
     }
 
     /**
-     * Verifies RegularCustomer loss of 8 per unserved turn and full price bill calculation.
+     * Verifies RegularCustomer loss of 8 per unserved turn and eating completion lifecycle.
      */
     public static void testCustomerDecayAndBilling() {
         Customer customer = new RegularCustomer(1, 1);
@@ -125,11 +125,18 @@ public class GameTest {
         assertEquals(8, customer.getWaitingSatisfactionLoss(), "Loss rate");
         assertEquals(100, customer.getSatisfaction(), "Initial satisfaction");
         assertEquals(CustomerState.WAITING_IN_QUEUE, customer.getState(), "Initial state");
-        assertEquals(1500, customer.calculateBillCents(1500), "Regular customer pays 100%");
+        assertTrue(!customer.hasFinishedEating(1), "Customer should not have finished eating before being served");
 
         boolean abandoned = customer.applyTurnEndSatisfactionDecay();
         assertTrue(!abandoned, "Should not abandon on first decay");
         assertEquals(92, customer.getSatisfaction(), "Satisfaction after 1 decay");
+
+        // Verify eating completion predicate
+        customer.markSeated();
+        customer.markOrderPlaced();
+        customer.markServed(2);
+        assertTrue(!customer.hasFinishedEating(2), "Customer should not finish eating on same turn served");
+        assertTrue(customer.hasFinishedEating(3), "Customer finishes eating on subsequent turn");
     }
 
     /**
@@ -244,8 +251,9 @@ public class GameTest {
         // Cashier acts before eating completion: Cashier finds no READY_TO_PAY
         Order paidTurn5 = cashier.processOldestReadyPayment(restaurant.getTables());
         assertTrue(paidTurn5 == null, "Cashier cannot collect on Turn 5 because customer is not READY_TO_PAY yet");
-        // Eating completion: servedTurn (4) < currentTurn (5) -> becomes READY_TO_PAY
-        customer.markReadyToPay(restaurant.allocateNextReadyToPaySequence());
+        // Eating completion: servedTurn (4) < currentTurn (5) -> becomes READY_TO_PAY via domain method
+        List<Table> finishedTurn5 = restaurant.processEatingCompletions(5);
+        assertEquals(1, finishedTurn5.size(), "Turn 5 eating completion count");
         assertEquals(CustomerState.READY_TO_PAY, customer.getState(), "Turn 5 state is READY_TO_PAY");
         restaurant.processTurnEndDecayAndAbandonment();
         assertEquals(76, customer.getSatisfaction(), "Turn 5 end sat");
@@ -290,19 +298,22 @@ public class GameTest {
         // Then Step 4b checks servedTurn (2) < 3 -> transitions to READY_TO_PAY!
         // Cashier already acted on Turn 3, so customer cannot pay on Turn 3.
         // Customer pays on Turn 4!
-        // Let's verify Cashier returns null on Turn 3:
+        // Let's verify Cashier returns null on Turn 3 and does not mark acted:
         restaurant.getCashier().resetTurnState();
         Order paidTurn3 = restaurant.getCashier().processOldestReadyPayment(restaurant.getTables());
         assertTrue(paidTurn3 == null, "Cashier must not collect on Turn 3");
+        assertTrue(!restaurant.getCashier().hasActedThisTurn(), "Cashier must not mark acted when idle");
 
-        // Eating completion on Turn 3:
-        customer.markReadyToPay(restaurant.allocateNextReadyToPaySequence());
+        // Eating completion on Turn 3 via restaurant domain method:
+        List<Table> finishedTables = restaurant.processEatingCompletions(3);
+        assertEquals(1, finishedTables.size(), "One table finished eating on Turn 3");
         assertEquals(CustomerState.READY_TO_PAY, customer.getState(), "Now READY_TO_PAY");
 
         // On Turn 4, Cashier collects:
         restaurant.getCashier().resetTurnState();
         Order paidTurn4 = restaurant.getCashier().processOldestReadyPayment(restaurant.getTables());
         assertTrue(paidTurn4 != null, "Cashier collects on Turn 4");
+        assertTrue(restaurant.getCashier().hasActedThisTurn(), "Cashier must mark acted after collecting payment");
         assertEquals(900, paidTurn4.getFinalPriceCents(), "Paid 900 cents");
     }
 
@@ -541,14 +552,7 @@ public class GameTest {
             if (paid != null) {
                 sim.recordPayment(paid);
             }
-            for (Table t : sim.getTables()) {
-                if (!t.isFree()) {
-                    Customer c = t.getCurrentCustomer();
-                    if (c.getState() == CustomerState.EATING && c.getServedTurn() < turn) {
-                        c.markReadyToPay(sim.allocateNextReadyToPaySequence());
-                    }
-                }
-            }
+            sim.processEatingCompletions(turn);
 
             // Step 5: Decay
             sim.processTurnEndDecayAndAbandonment();
