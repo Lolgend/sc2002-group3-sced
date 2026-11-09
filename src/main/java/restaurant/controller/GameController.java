@@ -212,16 +212,10 @@ public class GameController {
             ui.displayPaymentCollected(paidOrder);
         }
 
-        // Sub-step 4b: Customers served on an earlier turn (servedTurn < current turn) finish eating
-        for (Table table : restaurant.getTables()) {
-            if (!table.isFree()) {
-                Customer c = table.getCurrentCustomer();
-                if (c.getState() == CustomerState.EATING && c.getServedTurn() < turn) {
-                    int seq = restaurant.allocateNextReadyToPaySequence();
-                    c.markReadyToPay(seq);
-                    ui.displayEatingFinished(c, table);
-                }
-            }
+        // Sub-step 4b: Customers served on an earlier turn finish eating
+        List<Table> finishedTables = restaurant.processEatingCompletions(turn);
+        for (Table table : finishedTables) {
+            ui.displayEatingFinished(table.getCurrentCustomer(), table);
         }
     }
 

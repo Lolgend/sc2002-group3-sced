@@ -170,6 +170,20 @@ public class Restaurant {
         return new RegularCustomer(id, turn);
     }
 
+    public List<Table> processEatingCompletions(int turn) {
+        List<Table> finishedTables = new ArrayList<>();
+        for (Table table : tables) {
+            if (!table.isFree()) {
+                Customer customer = table.getCurrentCustomer();
+                if (customer.hasFinishedEating(turn)) {
+                    customer.markReadyToPay(allocateNextReadyToPaySequence());
+                    finishedTables.add(table);
+                }
+            }
+        }
+        return finishedTables;
+    }
+
     public List<Customer> processTurnEndDecayAndAbandonment() {
         List<Customer> abandonedThisTurn = new ArrayList<>();
 
