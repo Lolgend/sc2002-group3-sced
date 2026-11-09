@@ -1,8 +1,5 @@
 package restaurant.model;
 
-/**
- * State lifecycle of a Customer in Restaurant Rush.
- */
 public enum CustomerState {
     WAITING_IN_QUEUE,
     SEATED,

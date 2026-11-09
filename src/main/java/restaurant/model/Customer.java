@@ -4,11 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
-/**
- * Abstract base class for all restaurant customers.
- * Provides polymorphic hooks for customer behavior (loss rate, menu choice, billing)
- * enabling Stage 2 VIP and Critic extensions without modifying caller code (ADR-0001).
- */
+
 public abstract class Customer {
     private final int id;
     private final int arrivalTurn;
@@ -62,20 +58,9 @@ public abstract class Customer {
         return servedTurn;
     }
 
-    /**
-     * @return display string for customer type ("Regular", "VIP", "Critic")
-     */
     public abstract String getCustomerType();
-
-    /**
-     * @return satisfaction points lost at the end of each unserved turn
-     */
     public abstract int getWaitingSatisfactionLoss();
 
-    /**
-     * Polymorphic customer menu item selection.
-     * Stage 1 regular customer chooses uniformly at random from available items.
-     */
     public MenuItem chooseMenuItem(Menu menu, Random random) {
         Objects.requireNonNull(menu, "Menu cannot be null");
         Objects.requireNonNull(random, "Random cannot be null");
@@ -83,29 +68,17 @@ public abstract class Customer {
         return items.get(random.nextInt(items.size()));
     }
 
-    /**
-     * Polymorphic bill calculation hook.
-     * Regular customer pays 100% of base price. Overridden by VIP customer in Stage 2.
-     */
     public int calculateBillCents(int basePriceCents) {
         return basePriceCents;
     }
 
-    /**
-     * Checks if the customer is still waiting for service (queue, seated waiting for order, or waiting for food).
-     */
     public boolean isWaitingForService() {
         return state == CustomerState.WAITING_IN_QUEUE
                 || state == CustomerState.SEATED
                 || state == CustomerState.WAITING_FOR_FOOD;
     }
 
-    /**
-     * Applies turn-end satisfaction decay if the customer is waiting for service.
-     * Clamps satisfaction to [0, 100]. If satisfaction reaches 0, customer abandons.
-     *
-     * @return true if the customer abandoned on this decay, false otherwise
-     */
+
     public boolean applyTurnEndSatisfactionDecay() {
         if (!isWaitingForService()) {
             return false;
