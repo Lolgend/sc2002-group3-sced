@@ -40,8 +40,9 @@ public class Table {
         if (!isFree()) {
             throw new IllegalStateException("Table #" + tableNumber + " is already occupied by Customer #" + currentCustomer.getId());
         }
-        this.currentCustomer = Objects.requireNonNull(customer, "Customer cannot be null");
+        Objects.requireNonNull(customer, "Customer cannot be null");
         customer.markSeated();
+        this.currentCustomer = customer;
     }
 
     public void assignOrder(Order order) {
@@ -51,8 +52,15 @@ public class Table {
         if (this.currentOrder != null) {
             throw new IllegalStateException("Table #" + tableNumber + " already has an active order #" + this.currentOrder.getId());
         }
-        this.currentOrder = Objects.requireNonNull(order, "Order cannot be null");
+        Objects.requireNonNull(order, "Order cannot be null");
+        if (order.getTable() != this) {
+            throw new IllegalArgumentException("Order #" + order.getId() + " does not belong to Table #" + tableNumber);
+        }
+        if (order.getCustomer() != this.currentCustomer) {
+            throw new IllegalArgumentException("Order #" + order.getId() + " does not belong to Customer #" + this.currentCustomer.getId());
+        }
         this.currentCustomer.markOrderPlaced();
+        this.currentOrder = order;
     }
 
     public void freeTable() {
