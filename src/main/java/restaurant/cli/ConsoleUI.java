@@ -193,7 +193,8 @@ public class ConsoleUI {
     public void displayTurnSummary(int turn, Restaurant restaurant) {
         out.println();
         out.printf("--- End of Turn %d Summary ---%n", turn);
-        out.printf("  Served (Paid) Customers : %d%n", restaurant.getPaidCustomersCount());
+        out.printf("  Served Customers        : %d%n", restaurant.getServedCustomersCount());
+        out.printf("  Paid Customers          : %d%n", restaurant.getPaidCustomersCount());
         out.printf("  Unhappy Departures      : %d%n", restaurant.getAbandonedCustomersCount());
         out.printf("  Current Revenue         : %s%n", formatMoney(restaurant.getRevenueCents()));
         out.printf("  Average Satisfaction    : %s%n", restaurant.getAveragePaidSatisfactionString());

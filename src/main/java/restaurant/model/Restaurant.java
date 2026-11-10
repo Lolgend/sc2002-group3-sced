@@ -115,6 +115,18 @@ public class Restaurant {
         return paidCustomersCount;
     }
 
+    public int getServedCustomersCount() {
+        int servedCount = getPaidCustomersCount();
+
+        for (Order order : orders) {
+            if (order.getStatus() == OrderStatus.SERVED) {
+                servedCount++;
+            }
+        }
+
+        return servedCount;
+    }
+
     public int getTotalPaidSatisfaction() {
         return totalPaidSatisfaction;
     }
