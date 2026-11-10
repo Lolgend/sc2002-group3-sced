@@ -197,6 +197,12 @@ public class Restaurant {
     }
 
     protected Customer createCustomer(int id, int turn) {
+        if (id == 2) {
+            return new VIPCustomer(id, turn);
+        }
+        if (id == 5) {
+            return new CriticCustomer(id, turn);
+        }
         return new RegularCustomer(id, turn);
     }
 

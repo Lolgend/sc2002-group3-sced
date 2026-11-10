@@ -7,7 +7,7 @@ import restaurant.model.Restaurant;
 public class Main {
     public static void main(String[] args) {
         System.out.println("================================================================================");
-        System.out.println("                     RESTAURANT RUSH - STAGE 1 (BASE SETTING)");
+        System.out.println("                     RESTAURANT RUSH - STAGE 2 (BASE SETTING)");
         System.out.println("================================================================================");
         System.out.println("Welcome to Restaurant Rush! You are the Manager of a bustling 2-table restaurant.");
         System.out.println("Manage your Waiter, Chef, and Cashier over 18 turns to achieve victory:");
