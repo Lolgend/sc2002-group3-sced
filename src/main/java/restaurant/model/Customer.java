@@ -68,6 +68,10 @@ public abstract class Customer {
         return items.get(random.nextInt(items.size()));
     }
 
+    public int calculateBillCents(MenuItem item) {
+        return item.getPriceCents();
+    }
+
     public boolean hasFinishedEating(int currentTurn) {
         return state == CustomerState.EATING && servedTurn < currentTurn;
     }

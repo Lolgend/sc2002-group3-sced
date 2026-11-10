@@ -42,7 +42,7 @@ public class Waiter extends Staff {
         Objects.requireNonNull(random, "Random cannot be null");
 
         MenuItem chosenItem = customer.chooseMenuItem(menu, random);
-        int finalPriceCents = chosenItem.getPriceCents();
+        int finalPriceCents = customer.calculateBillCents(chosenItem);
         Order order = new Order(orderId, customer, table, chosenItem, finalPriceCents);
         table.assignOrder(order);
         markActed();
