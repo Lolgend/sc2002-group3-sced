@@ -37,7 +37,7 @@ Turn 14 Waiter: 2
 Turn 14 Chef: 0
 Turn 15 Waiter: 1
 Turn 15 Chef: 1
-Turn 16 Waiter: 2
+Turn 16 Waiter: 1
 Turn 16 Chef: 0
 Turn 17 Waiter: 1
 Turn 17 Chef: 0
