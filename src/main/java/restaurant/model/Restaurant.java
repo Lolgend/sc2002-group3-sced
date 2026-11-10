@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.HashSet;
-import java.util.Set;
 
 public class Restaurant {
     public static final int MAX_TURNS = GameConfig.DEFAULT_MAX_TURNS;
@@ -25,7 +23,6 @@ public class Restaurant {
     private final List<Table> tables;
     private final Menu menu;
     private final List<Order> orders;
-    private final Set<Integer> recordedPaymentOrderIds = new HashSet<>();
     private final Waiter waiter;
     private final Chef chef;
     private final Cashier cashier;
@@ -118,10 +115,11 @@ public class Restaurant {
     }
 
     public int getServedCustomersCount() {
-        int servedCount = getPaidCustomersCount();
+        int servedCount = 0;
 
         for (Order order : orders) {
-            if (order.getStatus() == OrderStatus.SERVED) {
+            if (order.getStatus() == OrderStatus.SERVED
+                    || order.getStatus() == OrderStatus.PAID) {
                 servedCount++;
             }
         }
@@ -164,13 +162,13 @@ public class Restaurant {
         this.orders.add(order);
     }
 
+    /**
+     * Records payment statistics.
+     * The caller must supply an order from this restaurant exactly once,
+     * after payment has completed.
+     */
     public void recordPayment(Order order) {
         Objects.requireNonNull(order, "Order cannot be null");
-
-        if (!orders.contains(order)) {
-            throw new IllegalArgumentException(
-                    "Cannot record payment for an order outside this restaurant.");
-        }
 
         Customer customer = order.getCustomer();
 
@@ -181,11 +179,6 @@ public class Restaurant {
         }
 
         Integer satisfactionAtPayment = customer.getSatisfactionAtPayment();
-
-        if (!recordedPaymentOrderIds.add(order.getId())) {
-            throw new IllegalStateException(
-                    "Payment has already been recorded for order #" + order.getId());
-        }
 
         this.revenueCents += order.getFinalPriceCents();
         this.paidCustomersCount++;

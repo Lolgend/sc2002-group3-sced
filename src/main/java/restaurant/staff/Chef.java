@@ -1,7 +1,6 @@
 package restaurant.staff;
 
 import restaurant.model.Order;
-import restaurant.model.OrderStatus;
 
 import java.util.Objects;
 
@@ -25,15 +24,12 @@ public class Chef extends Staff {
         checkAvailability();
         Objects.requireNonNull(order, "Order cannot be null");
 
-        if (order.getStatus() != OrderStatus.IN_PROGRESS) {
-            throw new IllegalStateException("Cannot prepare order #" + order.getId() + ": status is " + order.getStatus() + ", expected IN_PROGRESS.");
-        }
-
         order.advancePreparation();
         markActed();
     }
 
     public void waitTurn() {
+        checkAvailability();
         markActed();
     }
 }

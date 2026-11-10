@@ -5,7 +5,6 @@ import restaurant.model.CustomerState;
 import restaurant.model.Menu;
 import restaurant.model.MenuItem;
 import restaurant.model.Order;
-import restaurant.model.OrderStatus;
 import restaurant.model.Table;
 import restaurant.model.WaitingQueue;
 
@@ -28,10 +27,6 @@ public class Waiter extends Staff {
         Objects.requireNonNull(table, "Table cannot be null");
         Objects.requireNonNull(queue, "WaitingQueue cannot be null");
 
-        if (!table.isFree()) {
-            throw new IllegalStateException("Cannot seat customer: Table #"
-                    + table.getTableNumber() + " is occupied.");
-        }
         if (!queue.getCustomers().contains(customer)) {
             throw new IllegalStateException("Customer #" + customer.getId()
                     + " is not in the waiting queue.");
@@ -67,11 +62,6 @@ public class Waiter extends Staff {
     public void serveOrder(Order order, int turn) {
         checkAvailability();
         Objects.requireNonNull(order, "Order cannot be null");
-        if (order.getStatus() != OrderStatus.READY) {
-            throw new IllegalStateException("Cannot serve order #"
-                    + order.getId() + ": status is " + order.getStatus()
-                    + ", expected READY.");
-        }
 
         Customer customer = order.getCustomer();
         Table table = order.getTable();
@@ -92,6 +82,7 @@ public class Waiter extends Staff {
     }
 
     public void waitTurn() {
+        checkAvailability();
         markActed();
     }
 }

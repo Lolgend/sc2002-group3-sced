@@ -1,7 +1,5 @@
 package restaurant.staff;
 
-import java.util.Objects;
-
 /**
  * Abstract base class for restaurant staff members.
  * Tracks staff identity and single-action-per-turn capacity constraints.
@@ -37,7 +35,6 @@ public abstract class Staff {
     }
 
     protected void markActed() {
-        checkAvailability();
         this.actedThisTurn = true;
     }
 }
