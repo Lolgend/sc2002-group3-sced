@@ -21,7 +21,6 @@ public class Chef extends Staff {
      * Prepares an in-progress order by 1 unit.
      */
     public void prepareOrder(Order order) {
-        checkAvailability();
         Objects.requireNonNull(order, "Order cannot be null");
 
         order.advancePreparation();
@@ -29,7 +28,6 @@ public class Chef extends Staff {
     }
 
     public void waitTurn() {
-        checkAvailability();
         markActed();
     }
 }

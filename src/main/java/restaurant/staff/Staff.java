@@ -28,13 +28,10 @@ public abstract class Staff {
         this.actedThisTurn = false;
     }
 
-    protected void checkAvailability() {
+    protected void markActed() {
         if (this.actedThisTurn) {
             throw new IllegalStateException(name + " has already acted on this turn.");
         }
-    }
-
-    protected void markActed() {
         this.actedThisTurn = true;
     }
 }
