@@ -15,4 +15,9 @@ public class VIPCustomer extends Customer {
     public int getWaitingSatisfactionLoss() {
         return 5;
     }
+
+    @Override
+    public int calculateBillCents(MenuItem item) {
+        return (int) Math.round(super.calculateBillCents(item) * 0.9);
+    }
 }
