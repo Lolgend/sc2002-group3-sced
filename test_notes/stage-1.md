@@ -45,6 +45,15 @@ Turn 18 Waiter: 1
 Turn 18 Chef: 1
 ```
 
+Expected result:
+- Outcome: VICTORY
+- Turns completed: 18
+- Served customers: 5
+- Paid customers: 5
+- Revenue: $63.00
+- Average paid-customer satisfaction: 74.4
+- Unhappy departures: 0
+
 ### Deterministic Defeat Run
 
 Selects `0` (`Wait`) for both Waiter and Chef on every turn so customers eventually lose all satisfaction and abandon the restaurant:
@@ -87,3 +96,12 @@ Turn 17 Chef: 0
 Turn 18 Waiter: 0
 Turn 18 Chef: 0
 ```
+
+Expected result:
+- Outcome: DEFEAT
+- Turns completed: 18
+- Served customers: 0
+- Paid customers: 0
+- Revenue: $0.00
+- Average paid-customer satisfaction: N/A
+- Unhappy departures: 2
