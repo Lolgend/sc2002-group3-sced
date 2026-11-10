@@ -3,6 +3,7 @@ package restaurant.staff;
 import restaurant.model.Customer;
 import restaurant.model.CustomerState;
 import restaurant.model.Order;
+import restaurant.model.OrderStatus;
 import restaurant.model.Table;
 
 import java.util.List;
@@ -47,6 +48,15 @@ public class Cashier extends Staff {
         checkAvailability();
         Customer customer = oldestReadyTable.getCurrentCustomer();
         Order order = oldestReadyTable.getCurrentOrder();
+
+        if (order == null) {
+            throw new IllegalStateException(
+                    "Cannot collect payment without an order.");
+        }
+        if (order.getStatus() != OrderStatus.SERVED) {
+            throw new IllegalStateException("Cannot collect payment for order in status: "
+                    + order.getStatus());
+        }
 
         customer.markPaid();
         order.markPaid();

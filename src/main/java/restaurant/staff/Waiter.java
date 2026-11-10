@@ -29,12 +29,16 @@ public class Waiter extends Staff {
         Objects.requireNonNull(queue, "WaitingQueue cannot be null");
 
         if (!table.isFree()) {
-            throw new IllegalStateException("Cannot seat customer: Table #" + table.getTableNumber() + " is occupied.");
+            throw new IllegalStateException("Cannot seat customer: Table #"
+                    + table.getTableNumber() + " is occupied.");
         }
-        if (!queue.removeCustomer(customer)) {
-            throw new IllegalStateException("Customer #" + customer.getId() + " is not in the waiting queue.");
+        if (!queue.getCustomers().contains(customer)) {
+            throw new IllegalStateException("Customer #" + customer.getId()
+                    + " is not in the waiting queue.");
         }
+
         table.seatCustomer(customer);
+        queue.removeCustomer(customer);
         markActed();
     }
 
@@ -63,13 +67,27 @@ public class Waiter extends Staff {
     public void serveOrder(Order order, int turn) {
         checkAvailability();
         Objects.requireNonNull(order, "Order cannot be null");
-
         if (order.getStatus() != OrderStatus.READY) {
-            throw new IllegalStateException("Cannot serve order #" + order.getId() + ": status is " + order.getStatus() + ", expected READY.");
+            throw new IllegalStateException("Cannot serve order #"
+                    + order.getId() + ": status is " + order.getStatus()
+                    + ", expected READY.");
+        }
+
+        Customer customer = order.getCustomer();
+        Table table = order.getTable();
+
+        if (customer.getState() != CustomerState.WAITING_FOR_FOOD) {
+            throw new IllegalStateException("Cannot serve customer in state: "
+                    + customer.getState());
+        }
+        if (table.getCurrentCustomer() != customer
+                || table.getCurrentOrder() != order) {
+            throw new IllegalStateException(
+                    "Order does not match the table's current customer and order.");
         }
 
         order.markServed();
-        order.getCustomer().markServed(turn);
+        customer.markServed(turn);
         markActed();
     }
 

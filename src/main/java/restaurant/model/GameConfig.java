@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class GameConfig {
     public static final int DEFAULT_MAX_TURNS = 18;
     public static final int DEFAULT_NUM_TABLES = 2;
-    public static final int[] DEFAULT_ARRIVAL_TURNS = {1, 4, 7, 10, 13, 16};
+    private static final int[] DEFAULT_ARRIVAL_TURNS = {1, 4, 7, 10, 13, 16};
     public static final int DEFAULT_TARGET_PAID_CUSTOMERS = 4;
     public static final int DEFAULT_TARGET_REVENUE_CENTS = 4500; // $45.00
     public static final double DEFAULT_TARGET_AVG_SATISFACTION = 60.0;

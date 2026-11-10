@@ -29,14 +29,6 @@ public class GameController {
         this.ui = Objects.requireNonNull(ui, "ConsoleUI cannot be null");
     }
 
-    public Restaurant getRestaurant() {
-        return restaurant;
-    }
-
-    public ConsoleUI getUi() {
-        return ui;
-    }
-
     /**
      * Runs the full 18-turn game loop with no early termination.
      */
@@ -248,7 +240,7 @@ public class GameController {
     private void executeStep5WaitingAndAbandonment() {
         List<Customer> abandoned = restaurant.processTurnEndDecayAndAbandonment();
         for (Customer c : abandoned) {
-            ui.displayAbandonment(c, "leaving immediately");
+            ui.displayAbandonment(c);
         }
     }
 

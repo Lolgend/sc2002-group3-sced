@@ -173,7 +173,7 @@ public class ConsoleUI {
                 formatMoney(order.getFinalPriceCents()),
                 order.getCustomer().getId(),
                 order.getTable().getTableNumber(),
-                order.getCustomer().getSatisfaction(),
+                order.getCustomer().getSatisfactionAtPayment(),
                 order.getTable().getTableNumber());
     }
 
@@ -182,9 +182,10 @@ public class ConsoleUI {
                 customer.getId(), table.getTableNumber());
     }
 
-    public void displayAbandonment(Customer customer, String location) {
-        out.printf(">> [Abandonment] Customer #%d (%s) lost all satisfaction and left without paying! (%s)%n",
-                customer.getId(), customer.getCustomerType(), location);
+    public void displayAbandonment(Customer customer) {
+        out.printf(
+                ">> [Abandonment] Customer #%d (%s) lost all satisfaction and left without paying!%n",
+                customer.getId(), customer.getCustomerType());
     }
 
     /**
