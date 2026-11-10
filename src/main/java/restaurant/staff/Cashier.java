@@ -44,13 +44,14 @@ public class Cashier extends Staff {
             return null;
         }
 
-        markActed();
+        checkAvailability();
         Customer customer = oldestReadyTable.getCurrentCustomer();
         Order order = oldestReadyTable.getCurrentOrder();
 
         customer.markPaid();
         order.markPaid();
         oldestReadyTable.freeTable();
+        markActed();
 
         return order;
     }

@@ -23,7 +23,7 @@ public class Waiter extends Staff {
     }
 
     public void seatCustomer(Customer customer, Table table, WaitingQueue queue) {
-        markActed();
+        checkAvailability();
         Objects.requireNonNull(customer, "Customer cannot be null");
         Objects.requireNonNull(table, "Table cannot be null");
         Objects.requireNonNull(queue, "WaitingQueue cannot be null");
@@ -35,10 +35,11 @@ public class Waiter extends Staff {
             throw new IllegalStateException("Customer #" + customer.getId() + " is not in the waiting queue.");
         }
         table.seatCustomer(customer);
+        markActed();
     }
 
     public Order takeOrder(int orderId, Customer customer, Table table, Menu menu, Random random) {
-        markActed();
+        checkAvailability();
         Objects.requireNonNull(customer, "Customer cannot be null");
         Objects.requireNonNull(table, "Table cannot be null");
         Objects.requireNonNull(menu, "Menu cannot be null");
@@ -55,11 +56,12 @@ public class Waiter extends Staff {
         int finalPriceCents = chosenItem.getPriceCents();
         Order order = new Order(orderId, customer, table, chosenItem, finalPriceCents);
         table.assignOrder(order);
+        markActed();
         return order;
     }
 
     public void serveOrder(Order order, int turn) {
-        markActed();
+        checkAvailability();
         Objects.requireNonNull(order, "Order cannot be null");
 
         if (order.getStatus() != OrderStatus.READY) {
@@ -68,6 +70,7 @@ public class Waiter extends Staff {
 
         order.markServed();
         order.getCustomer().markServed(turn);
+        markActed();
     }
 
     public void waitTurn() {
