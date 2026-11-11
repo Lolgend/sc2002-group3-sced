@@ -69,6 +69,7 @@ public abstract class Customer {
     }
 
     public int calculateBillCents(MenuItem item) {
+        Objects.requireNonNull(item, "Menu item cannot be null");
         return item.getPriceCents();
     }
 

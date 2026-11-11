@@ -2,6 +2,7 @@ package restaurant.model;
 
 import java.util.List;
 import java.util.Random;
+import java.util.Objects;
 
 public class CriticCustomer extends Customer {
 
@@ -21,6 +22,8 @@ public class CriticCustomer extends Customer {
 
     @Override
     public MenuItem chooseMenuItem(Menu menu, Random random) {
+        Objects.requireNonNull(menu, "Menu cannot be null");
+        Objects.requireNonNull(random, "Random cannot be null");
         List<MenuItem> items = menu.getItems();
         MenuItem cheapestItem = items.get(0);
 

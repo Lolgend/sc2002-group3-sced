@@ -2,6 +2,10 @@
 
 A turn-based command-line restaurant management game in Java (JDK 17+).
 
+## Repository
+
+[Lolgend/sc2002-group3-sced](https://github.com/Lolgend/sc2002-group3-sced)
+
 ## Prerequisites
 
 - **Java Development Kit (JDK)**: Version 17 or higher (`javac` and `java` available in `PATH`).
@@ -45,6 +49,10 @@ Stage 2 adds VIP and Critic customers with different waiting penalties, menu pre
 
 The six arrival turns are 1, 4, 7, 10, 13 and 16. Customer 2 is a VIP arriving on turn 4, and Customer 5 is a Critic arriving on turn 13. The other four customers are Regular customers.
 
+## Reproducible Test Runs
+
+For turn-by-turn inputs to reproduce deterministic victory and defeat outcomes for stage-2, see the [Stage 2 Test Notes](test_notes/stage-2.md).
+
 ## Stage 2 Change Analysis
 
 ### 1. Delegate order billing to customers
@@ -86,3 +94,7 @@ The existing overridable method allows this preference to be added without chang
 We considered updating the existing creation method directly or adding a `MixedCustomerRestaurant` subclass that overrides it. Since Stage 2 introduces a different mix of customer types, we treated this as an adjustment to the game's customer creation setup. Manual §4.4 explicitly expects small registration or setup changes when extending earlier stages. We therefore chose to update `createCustomer()` directly: the setup determines which customer types participate in the new stage, while the stable arrival and service processes remain reusable. This allows the implementation to follow the new stage requirements without introducing a separate restaurant subclass solely to preserve the previous arrival arrangement.
 
 The original separation of customer creation from arrival timing and queue insertion makes this a small, local change. The conditions select which customer objects to create, while their waiting penalties, menu preferences and billing rules remain in the customer subclasses. This balances simplicity with extensibility: the arrival setup is updated directly, while the shared service flow continues to use polymorphism without customer-type checks in the controller.
+
+### Regression check
+
+Regular customers still pay the full menu price, and orders retain the bill calculated when they are taken. The existing arrival schedule, staff task limits, service lifecycle and 18-turn ending rules are also retained. We checked the integrated Stage 2 game using the reproducible victory and defeat runs in the [Stage 2 Test Notes](test_notes/stage-2.md). Both runs completed all 18 turns with the documented results, providing regression evidence for the shared game flow.

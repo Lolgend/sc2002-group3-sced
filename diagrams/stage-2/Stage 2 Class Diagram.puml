@@ -1,0 +1,488 @@
+@startuml Stage_2_Class_Diagram
+
+' Based on Stage 1's original layout and Stage 2 code at 30998f5.
+' Invisible layout links preserve the relative order of the original columns.
+' The accompanying SVG preserves the reviewed positions and connector routing.
+title Restaurant Rush - Stage 2 Class Diagram
+
+skinparam classAttributeIconSize 0
+left to right direction
+skinparam linetype ortho
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam nodesep 170
+skinparam ranksep 120
+skinparam defaultFontSize 20
+skinparam Padding 8
+skinparam ArrowFontSize 17
+skinparam titleFontSize 36
+skinparam ArrowThickness 1
+skinparam groupInheritance 1
+skinparam class {
+    BackgroundColor #ECECEC
+    HeaderBackgroundColor #ECECEC
+    BorderColor #555555
+    ArrowColor #222222
+    BackgroundColor<<boundary>> #DCEBFA
+    HeaderBackgroundColor<<boundary>> #DCEBFA
+    BorderColor<<boundary>> #1F5FA8
+    BackgroundColor<<control>> #FDE5C8
+    HeaderBackgroundColor<<control>> #FDE5C8
+    BorderColor<<control>> #B35C00
+    BackgroundColor<<entity>> #DDF2DD
+    HeaderBackgroundColor<<entity>> #DDF2DD
+    BorderColor<<entity>> #2E7D32
+    BackgroundColor<<enumeration>> #EADCF5
+    HeaderBackgroundColor<<enumeration>> #EADCF5
+    BorderColor<<enumeration>> #6A2C9A
+    BackgroundColor<<interface>> #D3F0EE
+    HeaderBackgroundColor<<interface>> #D3F0EE
+    BorderColor<<interface>> #00796B
+    BackgroundColor<<record>> #ECECEC
+    HeaderBackgroundColor<<record>> #ECECEC
+    BorderColor<<record>> #555555
+}
+
+skinparam legend {
+    BackgroundColor #FFFFFF
+    BorderColor #333333
+}
+hide empty members
+hide circle
+
+' ============================================================================
+' CLASSES
+' ============================================================================
+
+class Main {
+    + {static} main(args: String[]): void
+}
+
+class ConsoleUI <<boundary>> {
+    - scanner: Scanner {readOnly}
+    - out: PrintStream {readOnly}
+    --
+    + {static} formatMoney(cents: int): String
+    + displayStartOfTurn(turn: int,\n    restaurant: Restaurant): void
+    + promptMenuChoice(promptTitle: String,\n    options: List<String>): int
+    + displayArrival(customer: Customer, turn: int): void
+    + displayWaiterAction(description: String): void
+    + displayOrderTaken(order: Order): void
+    + displayChefAction(description: String): void
+    + displayOrderCooked(order: Order): void
+    + displayPaymentCollected(order: Order): void
+    + displayEatingFinished(customer: Customer,\n    table: Table): void
+    + displayAbandonment(customer: Customer): void
+    + displayTurnSummary(turn: int,\n    restaurant: Restaurant): void
+    + displayFinalResult(result: GameResult): void
+}
+
+class GameController <<control>> {
+    - restaurant: Restaurant {readOnly}
+    - ui: ConsoleUI {readOnly}
+    --
+    + runGame(): void
+    + evaluateGameResult(): GameResult
+    + runTurn(turn: int): void
+    - executeStep1Arrivals(turn: int): void
+    - executeStep2And3StaffActions(turn: int): void
+    + buildLegalWaiterActions(): List<WaiterAction>
+    - getLowestNumberedFreeTable(): Table
+    - executeWaiterAction(action: WaiterAction,\n    turn: int): void
+    + buildLegalChefActions(): List<ChefAction>
+    - executeChefAction(action: ChefAction): void
+    - executeStep4EatingAndPayment(turn: int): void
+    - executeStep5WaitingAndAbandonment(): void
+    - executeStep6EndSummary(turn: int): void
+}
+
+enum WaiterActionType <<enumeration>> {
+    WAIT
+    SEAT_CUSTOMER
+    TAKE_ORDER
+    SERVE_ORDER
+}
+
+class WaiterAction {
+    - type: WaiterActionType {readOnly}
+    - description: String {readOnly}
+    - customer: Customer [0..1] {readOnly}
+    - table: Table [0..1] {readOnly}
+    - order: Order [0..1] {readOnly}
+    --
+    + {static} createWait(): WaiterAction
+    + {static} createSeat(customer: Customer,\n    table: Table): WaiterAction
+    + {static} createTakeOrder(customer: Customer,\n    table: Table): WaiterAction
+    + {static} createServeOrder(order: Order): WaiterAction
+}
+
+class ChefAction {
+    - wait: boolean {readOnly}
+    - description: String {readOnly}
+    - order: Order [0..1] {readOnly}
+    --
+    + {static} createWait(): ChefAction
+    + {static} createCook(order: Order): ChefAction
+}
+
+abstract class Staff <<entity>> {
+    - name: String {readOnly}
+    - actedThisTurn: boolean
+    --
+    + resetTurnState(): void
+    # markActed(): void
+}
+
+class Waiter <<entity>> {
+    + seatCustomer(customer: Customer, table: Table,\n    queue: WaitingQueue): void
+    + takeOrder(orderId: int, customer: Customer,\n    table: Table, menu: Menu, random: Random): Order
+    + serveOrder(order: Order, turn: int): void
+    + waitTurn(): void
+}
+
+class Chef <<entity>> {
+    + prepareOrder(order: Order): void
+    + waitTurn(): void
+}
+
+class Cashier <<entity>> {
+    + processOldestReadyPayment(\n    tables: List<Table>): Order
+}
+
+class Restaurant <<entity>> {
+    - config: GameConfig {readOnly}
+    - waitingQueue: WaitingQueue {readOnly}
+    - tables: List<Table> {readOnly}
+    - menu: Menu {readOnly}
+    - orders: List<Order> {readOnly}
+    - waiter: Waiter {readOnly}
+    - chef: Chef {readOnly}
+    - cashier: Cashier {readOnly}
+    - random: Random {readOnly}
+    - nextCustomerId: int
+    - nextOrderId: int
+    - nextReadyToPaySeq: int
+    - revenueCents: int
+    - paidCustomersCount: int
+    - totalPaidSatisfaction: int
+    - abandonedCustomersCount: int
+    --
+    + getOrders(): List<Order>
+    + getServedCustomersCount(): int
+    + getAveragePaidSatisfaction(): double
+    + getAveragePaidSatisfactionString(): String
+    + allocateNextOrderId(): int
+    + allocateNextReadyToPaySequence(): int
+    + recordOrder(order: Order): void
+    + recordPayment(order: Order): void
+    + processArrival(turn: int): Customer
+    # createCustomer(id: int, turn: int): Customer
+    + processEatingCompletions(turn: int): List<Table>
+    + processTurnEndDecayAndAbandonment(): List<Customer>
+    + isVictory(): boolean
+}
+
+class GameConfig {
+    + {static} DEFAULT_MAX_TURNS: int = 18 {readOnly}
+    + {static} DEFAULT_NUM_TABLES: int = 2 {readOnly}
+    - {static} DEFAULT_ARRIVAL_TURNS: int[]\n    = {1, 4, 7, 10, 13, 16} {readOnly}
+    + {static} DEFAULT_TARGET_PAID_CUSTOMERS: int = 4 {readOnly}
+    + {static} DEFAULT_TARGET_REVENUE_CENTS: int = 4500 {readOnly}
+    + {static} DEFAULT_TARGET_AVG_SATISFACTION: double = 60.0 {readOnly}
+    + {static} DEFAULT_SEED: long = 42L {readOnly}
+    - maxTurns: int {readOnly}
+    - numTables: int {readOnly}
+    - arrivalTurns: int[] {readOnly}
+    - targetPaidCustomers: int {readOnly}
+    - targetRevenueCents: int {readOnly}
+    - targetAvgSatisfaction: double {readOnly}
+    - seed: long {readOnly}
+    --
+    + {static} createBaseConfig(): GameConfig
+    + getArrivalTurns(): int[]
+    + isArrivalTurn(turn: int): boolean
+    + isPaidTargetMet(paidCount: int): boolean
+    + isRevenueTargetMet(revenueCents: int): boolean
+    + isSatisfactionTargetMet(avgSatisfaction: double): boolean
+    + isVictory(paidCount: int, revenueCents: int,\n    avgSatisfaction: double): boolean
+}
+
+class GameResult <<record>> {
+    - isVictory: boolean {readOnly}
+    - paidCustomersCount: int {readOnly}
+    - targetPaidCustomers: int {readOnly}
+    - paidCustomersTargetMet: boolean {readOnly}
+    - revenueCents: int {readOnly}
+    - targetRevenueCents: int {readOnly}
+    - revenueTargetMet: boolean {readOnly}
+    - averagePaidSatisfaction: double {readOnly}
+    - targetAverageSatisfaction: double {readOnly}
+    - satisfactionTargetMet: boolean {readOnly}
+    - abandonedCustomersCount: int {readOnly}
+    --
+    + getAveragePaidSatisfactionString(): String
+}
+
+class WaitingQueue <<entity>> {
+    - customers: List<Customer> {readOnly}
+    --
+    + addCustomer(customer: Customer): void
+    + removeCustomer(customer: Customer): boolean
+    + getCustomers(): List<Customer>
+    + isEmpty(): boolean
+    + size(): int
+}
+
+class Table <<entity>> {
+    - tableNumber: int {readOnly}
+    - currentCustomer: Customer [0..1]
+    - currentOrder: Order [0..1]
+    --
+    + isFree(): boolean
+    + seatCustomer(customer: Customer): void
+    + assignOrder(order: Order): void
+    + freeTable(): void
+}
+
+abstract class Customer <<entity>> {
+    - id: int {readOnly}
+    - arrivalTurn: int {readOnly}
+    - satisfaction: int
+    - state: CustomerState
+    - satisfactionAtPayment: Integer [0..1]
+    - servedTurn: int
+    - readyToPaySequence: int
+    --
+    + {abstract} getCustomerType(): String
+    + {abstract} getWaitingSatisfactionLoss(): int
+    + chooseMenuItem(menu: Menu, random: Random): MenuItem
+    + calculateBillCents(item: MenuItem): int
+    + hasFinishedEating(currentTurn: int): boolean
+    + isWaitingForService(): boolean
+    + applyTurnEndSatisfactionDecay(): boolean
+    + markSeated(): void
+    + markOrderPlaced(): void
+    + markServed(turn: int): void
+    + markReadyToPay(sequenceNumber: int): void
+    + markPaid(): void
+}
+
+class RegularCustomer <<entity>> {
+    + getCustomerType(): String
+    + getWaitingSatisfactionLoss(): int
+}
+
+class VIPCustomer <<entity>> {
+    + getCustomerType(): String
+    + getWaitingSatisfactionLoss(): int
+    + calculateBillCents(item: MenuItem): int
+}
+
+class CriticCustomer <<entity>> {
+    + getCustomerType(): String
+    + getWaitingSatisfactionLoss(): int
+    + chooseMenuItem(menu: Menu, random: Random): MenuItem
+}
+
+enum CustomerState <<enumeration>> {
+    WAITING_IN_QUEUE
+    SEATED
+    WAITING_FOR_FOOD
+    EATING
+    READY_TO_PAY
+    PAID
+    ABANDONED
+}
+
+class Order <<entity>> {
+    - id: int {readOnly}
+    - customer: Customer {readOnly}
+    - table: Table {readOnly}
+    - menuItem: MenuItem {readOnly}
+    - finalPriceCents: int {readOnly}
+    - totalPrepUnits: int {readOnly}
+    - completedPrepUnits: int
+    - status: OrderStatus
+    --
+    + advancePreparation(): void
+    + markServed(): void
+    + markPaid(): void
+    + markCancelled(): void
+}
+
+enum OrderStatus <<enumeration>> {
+    IN_PROGRESS
+    READY
+    SERVED
+    PAID
+    CANCELLED
+}
+
+class Menu <<entity>> {
+    - items: List<MenuItem> {readOnly}
+    --
+    + {static} createBaseMenu(): Menu
+}
+
+interface MenuItem <<interface>> {
+    + getName(): String
+    + getPriceCents(): int
+    + getPrepUnits(): int
+}
+
+class Dish <<entity>> {
+    - name: String {readOnly}
+    - priceCents: int {readOnly}
+    - prepUnits: int {readOnly}
+}
+
+' ============================================================================
+' RELATIONSHIPS
+' ============================================================================
+
+' --- Bootstrap
+Main -[#7C8998,dashed]-> ConsoleUI
+Main -[#7C8998,dashed]--> GameController
+Main -[#7C8998,dashed]-> Restaurant
+
+' --- Control
+GameController --> "1" ConsoleUI
+GameController --> "1" Restaurant
+GameController -[#7C8998,dashed]-> WaiterAction
+GameController -[#7C8998,dashed]-> ChefAction
+GameController -[#7C8998,dashed]-> GameResult
+ConsoleUI -[#7C8998,dashed]-> GameResult
+WaiterAction --> "1" WaiterActionType
+' This reference is shown in attributes or operation signatures.
+WaiterAction -[hidden]-> Customer
+' This reference is shown in attributes or operation signatures.
+WaiterAction -[hidden]-> Table
+' This reference is shown in attributes or operation signatures.
+WaiterAction -[hidden]-> Order
+' This reference is shown in attributes or operation signatures.
+ChefAction -[hidden]-> Order
+
+' --- Restaurant composition
+Restaurant "1" *-- "1" GameConfig
+Restaurant "1" *-- "1" WaitingQueue
+Restaurant "1" *-- "1..*" Table
+Restaurant "1" *-- "1" Menu
+Restaurant "1" *-- "0..*" Order
+Restaurant "1" *-- "1" Waiter
+Restaurant "1" *-- "1" Chef
+Restaurant "1" *-- "1" Cashier
+
+' --- Staff
+Staff <|-- Waiter
+Staff <|-- Chef
+Staff <|-- Cashier
+' This reference is shown in attributes or operation signatures.
+Waiter -[hidden]-> WaitingQueue
+' This reference is shown in attributes or operation signatures.
+Waiter -[hidden]-> Table
+' This reference is shown in attributes or operation signatures.
+Waiter -[hidden]-> Menu
+Waiter -[#7C8998,dashed]-> Order
+Chef -[#7C8998,dashed]-> Order
+' This reference is shown in attributes or operation signatures.
+Cashier -[hidden]-> Table
+Cashier -[#7C8998,dashed]-> Order
+
+' --- Domain
+WaitingQueue "0..1" o-- "0..*" Customer
+Table "0..1" o-- "currentCustomer\n0..1" Customer
+Order "0..1\ncurrentOrder" -[norank]-o "0..1" Table
+Order "0..1" --> "1" Customer
+Order "0..*" --> "1\ntable" Table
+Order "0..*" --> "1" MenuItem
+Order --> "1" OrderStatus
+Menu "1" *-- "1..*" MenuItem
+Customer --> "1" CustomerState
+Customer <|-- RegularCustomer
+Customer <|-- VIPCustomer
+Customer <|-- CriticCustomer
+MenuItem <|.. Dish
+
+
+note top of Order
+  <b>Encapsulation of State & Pricing:</b>
+  • Private mutable fields (<i>status</i>, <i>completedPrepUnits</i>)
+    can only transition via guarded domain methods:
+    <i>advancePreparation()</i>, <i>markServed()</i>,
+    <i>markPaid()</i>, and <i>markCancelled()</i>.
+  • <i>finalPriceCents</i> is immutable and locked at order creation.
+end note
+
+note bottom of Customer
+  <b>Polymorphism & Template Method Seam:</b>
+  • <i>applyTurnEndSatisfactionDecay()</i> deducts
+    <i>getWaitingSatisfactionLoss()</i> polymorphically
+    without type checks in <i>GameController</i> or <i>Restaurant</i>.
+  • <i>chooseMenuItem()</i> provides an overridable hook
+    for customer-specific ordering preferences.
+  • VIP: waiting loss 5; <i>calculateBillCents()</i> applies 10% off.
+  • Critic: waiting loss 12; cheapest item, first in menu on ties.
+  • Regular: waiting loss 8; random item and full-price billing.
+  • <i>Waiter.takeOrder()</i> delegates pricing to the customer;
+    the calculated price is stored in <i>Order</i>.
+  • Guarded transitions enforce legal <i>CustomerState</i> progression.
+end note
+
+note top of Restaurant
+  <b>Composition & Aggregate Root:</b>
+  • <i>Restaurant</i> owns the lifecycle of its <i>Table</i>s,
+    <i>WaitingQueue</i>, <i>Menu</i>, <i>GameConfig</i>, and <i>Staff</i>.
+  • <i>createCustomer()</i> creates VIP C2, Critic C5,
+    and Regular customers for the other arrivals.
+  • Collections (<i>tables</i>, <i>orders</i>) and <i>WaitingQueue</i>
+    expose unmodifiable views to prevent external mutation.
+end note
+
+note bottom of MenuItem
+  <b>Abstraction Seam (MenuItem):</b>
+  • <i>Order</i> and <i>Menu</i> depend on the <i>MenuItem</i>
+    interface rather than concrete <i>Dish</i>, allowing
+    composite items in later stages without changing <i>Order</i>.
+end note
+
+' ============================================================================
+' LEGEND
+' ============================================================================
+
+' Keep Stage 1 column order. These invisible links affect layout only.
+Restaurant -[hidden]right- Staff
+Staff -[hidden]right- ConsoleUI
+ConsoleUI -[hidden]right- ChefAction
+GameConfig -[hidden]right- Waiter
+Waiter -[hidden]right- Cashier
+Cashier -[hidden]right- Chef
+Chef -[hidden]right- GameResult
+GameResult -[hidden]right- WaiterAction
+Menu -[hidden]right- WaitingQueue
+WaitingQueue -[hidden]right- Order
+Order -[hidden]right- WaiterActionType
+MenuItem -[hidden]right- Table
+Table -[hidden]right- OrderStatus
+Dish -[hidden]right- Customer
+RegularCustomer -[hidden]right- VIPCustomer
+VIPCustomer -[hidden]right- CriticCustomer
+CriticCustomer -[hidden]right- CustomerState
+
+' Give the order/table/customer route its own horizontal corridor.
+Order -[hidden]down- Table
+Table -[hidden]down- Customer
+
+legend bottom right
+  |= Colour |= Category |
+  |<#DCEBFA>   | Boundary (UI) |
+  |<#FDE5C8>   | Control |
+  |<#DDF2DD>   | Entity |
+  |<#EADCF5>   | Enumeration |
+  |<#D3F0EE>   | Interface |
+  |<#ECECEC>   | Misc (bootstrap, actions, config, result) |
+  Attributes and key operations; routine accessors, constructors and standard object methods omitted.
+  Stored references are shown as attributes; configuration aliases in Restaurant are omitted.
+  Selected dependencies are drawn; parameter types show the others.
+endlegend
+
+@enduml
