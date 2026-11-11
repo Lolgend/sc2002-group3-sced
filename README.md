@@ -53,6 +53,12 @@ The six arrival turns are 1, 4, 7, 10, 13 and 16. Customer 2 is a VIP arriving o
 
 For turn-by-turn inputs to reproduce deterministic victory and defeat outcomes for stage-2, see the [Stage 2 Test Notes](test_notes/stage-2.md).
 
+## Sequence Diagram
+
+[View the Stage 2 Sequence Diagram](diagrams/stage-2/Stage_2_Sequence_Diagram.png) · [PlantUML source](diagrams/stage-2/Stage%202%20Sequence%20Diagram.puml)
+
+The diagram shows the restaurant service flow, VIP pricing, and how the manager's service priority affects customer satisfaction and final statistics.
+
 ## Stage 2 Change Analysis
 
 ### 1. Delegate order billing to customers

@@ -1,0 +1,271 @@
+@startuml Stage_2_Sequence_Diagram
+' Source: c01838fbfa6728bbed46dcb94a0314e6dfaced17, seed 42.
+' Detailed chronological window: T4-T8, linking C1's completion/payment to C2 service.
+' C1 and o1 pre-exist the window; C2 and o2 are created on T4 and T6.
+' One alt swaps the T7/T8 Waiter tasks. Both branches continue at T9.
+' Verified continuations use the same later staff tasks; T10 option indices differ.
+' No application source, Google Docs or Git changes are made by this artifact.
+' Void calls have no return arrows. Value returns are explicit or assigned.
+mainframe sd RestaurantServiceAndPriority
+title Stage 2 - Restaurant Service and Waiter Priority
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 17
+skinparam shadowing false
+skinparam roundcorner 0
+skinparam ParticipantPadding 18
+skinparam maxMessageSize 235
+skinparam sequenceMessageAlign left
+skinparam sequence {
+  ArrowColor black
+  ArrowFontColor black
+  ArrowFontSize 17
+  LifeLineBorderColor #333333
+  LifeLineBackgroundColor #5769C7
+  ParticipantBorderColor black
+  ParticipantBackgroundColor white
+  ParticipantFontColor black
+  ParticipantFontSize 17
+  ActorBorderColor black
+  ActorBackgroundColor white
+  BoundaryBackgroundColor white
+  ControlBackgroundColor white
+  EntityBackgroundColor white
+  BoundaryBorderColor black
+  ControlBorderColor black
+  EntityBorderColor black
+  ArrowThickness 1.3
+  ActivationBorderColor black
+  ActivationBackgroundColor #5769C7
+  GroupBorderColor black
+  GroupBackgroundColor white
+  GroupHeaderFontColor black
+  GroupFontColor black
+  DividerBackgroundColor white
+  DividerBorderColor #888888
+  DividerFontColor black
+  DividerFontSize 17
+  ReferenceBackgroundColor white
+  ReferenceBorderColor #777777
+}
+skinparam note {
+  BackgroundColor white
+  BorderColor #777777
+  FontColor black
+  FontSize 15
+}
+hide footbox
+
+actor ":Manager" as M
+boundary "ui : ConsoleUI" as U
+control "game : GameController" as G
+entity "restaurant : Restaurant" as R
+entity "waiter : Waiter" as W
+entity "chef : Chef" as H
+entity "cashier : Cashier" as K
+participant "c1 : RegularCustomer" as C1
+participant "o1 : Order" as O1
+participant "c2 : VIPCustomer" as C2
+participant "o2 : Order" as O2
+
+[-> G : runGame()
+activate G
+note over M,R
+  Prelude (seed 42; two tables):
+  Turn 1: C1 arrives and is seated at Table 1; Chef waits.
+  Turn 2: C1 orders Pasta ($18.00); Chef completes preparation unit 1 of 2.
+  Turn 3: Waiter waits; Chef completes unit 2 and Order 1 becomes READY.
+  Before Turn 4: C1 is waiting for food at satisfaction 76; Table 2 is free; no payments.
+end note
+note over R,K
+  Focus: A complete restaurant-service scenario, with detailed interactions
+  shown for Turns 4–8. It covers Customer 1’s eating completion and payment;
+  Customer 2’s arrival, seating, ordering, VIP pricing, food preparation
+  and service; and how the Manager’s priority choices in Turns 7–8 affect
+  service timing, customer satisfaction and final statistics.
+  C1 and Order 1 already exist.
+  Helpers, Table/queue internals, staff resets and routine UI are omitted.
+  Unshown customer checks, waiting decay and turn summaries still run.
+end note
+
+== Turn 4 - C2 arrives; C1 is served ==
+G -> R ++ : processArrival(4)
+R -> R ++ : c2 = createCustomer(2, 4)
+create C2
+R -->> C2 : <<create>> VIPCustomer(2, 4)
+activate C2
+||8||
+C2 -[hidden]-> R
+deactivate C2
+deactivate R
+R --> G -- : c2
+G -> U ++ : displayArrival(c2, 4)
+deactivate U
+G -> U ++ : promptMenuChoice(...)
+U --> G -- : turn4WaiterChoice = 2
+G -> W ++ : serveOrder(o1, 4)
+deactivate W
+note over G,C2
+  C1 starts EATING (serving internals are illustrated for C2 on Turn 7/8).
+  Chef waits (omitted). C2 waits in the queue: satisfaction 100 -> 95 at turn end.
+end note
+
+== Turn 5 - Seat C2; C1 finishes eating ==
+G -> U ++ : promptMenuChoice(...)
+U --> G -- : turn5WaiterChoice = 1
+G -> W ++ : seatCustomer(c2, table2, queue)
+deactivate W
+note over G,H : Chef waits (omitted). Cashier acts before eating completion.
+G -> K ++ : processOldestReadyPayment(tables)
+K --> G -- : null [C1 is still EATING]
+G -> R ++ : processEatingCompletions(5)
+R -> C1 ++ : hasFinishedEating(5)
+C1 --> R -- : true
+R -> C1 ++ : markReadyToPay(sequenceNumber)
+deactivate C1
+R --> G -- : [table1]
+G -> U ++ : displayEatingFinished(c1, table1)
+deactivate U
+note over G,C2
+  C1: READY_TO_PAY, satisfaction 76; Table 1 remains occupied.
+  C2: SEATED; end-of-turn satisfaction 95 -> 90. Decay and summary calls omitted.
+end note
+
+== Turn 6 - C2 orders and food is prepared; C1 pays ==
+G -> U ++ : promptMenuChoice(...)
+U --> G -- : turn6WaiterChoice = 1
+G -> W ++ : takeOrder(2, c2, table2, menu, random)
+W -> C2 ++ : chooseMenuItem(menu, random)
+C2 --> W -- : item = Salad
+W -> C2 ++ : calculateBillCents(item)
+C2 --> W -- : bill = 810 cents [900 x 0.9]
+create O2
+W -->> O2 : <size:14><<create>> Order(2,c2,table2,item,bill)</size>
+activate O2
+||8||
+O2 -[hidden]-> W
+deactivate O2
+W --> G -- : o2
+G -> R ++ : recordOrder(o2)
+deactivate R
+note over C2,O2 : C2: WAITING_FOR_FOOD. Order 2's VIP price is locked at 810 cents.
+G -> U ++ : promptMenuChoice(...)
+U --> G -- : turn6ChefChoice = 1
+G -> H ++ : prepareOrder(o2)
+H -> O2 ++ : advancePreparation()
+deactivate O2
+deactivate H
+note over O2 : READY: 1/1 preparation unit completed.
+G -> K ++ : processOldestReadyPayment(tables)
+K -> C1 ++ : markPaid()
+deactivate C1
+K -> O1 ++ : markPaid()
+deactivate O1
+note over K,O1 : Cashier also frees Table 1 and marks its task used (internal calls omitted).
+K --> G -- : o1
+G -> R ++ : recordPayment(o1)
+deactivate R
+G -> U ++ : displayPaymentCollected(o1)
+deactivate U
+note over C1,O1 : C1 and Order 1: PAID. $18.00 recorded; payment satisfaction = 76.
+G -> R ++ : processTurnEndDecayAndAbandonment()
+R -> C2 ++ : applyTurnEndSatisfactionDecay()
+C2 -> C2 ++ : loss = getWaitingSatisfactionLoss()
+deactivate C2
+C2 --> R -- : false [VIP loss 5; 90 -> 85]
+R --> G -- : empty list
+
+== Turn 7 - Choose the Waiter's priority ==
+note over G,R
+  C1's payment freed Table 1. C3 now arrives (arrival messages omitted).
+  C2's order is READY. Only one Waiter task can be completed this turn.
+end note
+G -> U ++ : promptMenuChoice(...)
+U -> M ++ : 1: seat C3 / 2: serve C2
+M -> U : select priority
+deactivate M
+U --> G -- : turn7WaiterChoice
+
+alt turn7WaiterChoice == 2 (A: serve C2 first, then seat C3)
+  G -> W ++ : serveOrder(o2, 7)
+  W -> O2 ++ : markServed()
+  deactivate O2
+  W -> C2 ++ : markServed(7)
+  deactivate C2
+  deactivate W
+  note over G,C2 : Turn 7: Chef waits; C2 starts EATING at satisfaction 85 (routine calls omitted).
+  group Turn 8 - Seat C3
+    G -> U ++ : promptMenuChoice(...)
+    U -> M ++ : 1: seat C3
+    M -> U : seat C3
+    deactivate M
+    U --> G -- : turn8WaiterChoice = 1
+    G -> W ++ : seatCustomer(c3, table1, queue)
+    deactivate W
+    note over G,H : Chef waits; automatic processing, decay and summary calls omitted.
+    note over G,C2
+      <b>End of Turn 8 - A</b>
+      C2: READY_TO_PAY, satisfaction 85; Order 2: SERVED; C2 has not paid.
+      C3: SEATED, satisfaction 84.
+    end note
+  end
+else turn7WaiterChoice == 1 (B: seat C3 first, then serve C2)
+  G -> W ++ : seatCustomer(c3, table1, queue)
+  deactivate W
+  note over G,H : Turn 7: Chef waits (omitted); C2 is still waiting for food.
+  G -> R ++ : processTurnEndDecayAndAbandonment()
+  R -> C2 ++ : applyTurnEndSatisfactionDecay()
+  C2 --> R -- : false [85 -> 80; not abandoned]
+  R --> G -- : empty list
+  group Turn 8 - Serve C2
+    G -> U ++ : promptMenuChoice(...)
+    U -> M ++ : 1: take C3's order / 2: serve C2
+    M -> U : serve C2
+    deactivate M
+    U --> G -- : turn8WaiterChoice = 2
+    G -> W ++ : serveOrder(o2, 8)
+    W -> O2 ++ : markServed()
+    deactivate O2
+    W -> C2 ++ : markServed(8)
+    deactivate C2
+    deactivate W
+    note over G,H : Chef waits; automatic processing, decay and summary calls omitted.
+    note over G,C2
+      <b>End of Turn 8 - B</b>
+      C2: EATING, satisfaction 80; Order 2: SERVED; C2 has not paid.
+      C3: SEATED, satisfaction 84.
+    end note
+  end
+end
+
+== Turns 9-18 - Continue the shared service flow ==
+note over G,O2
+  C2's eating-completion and payment interactions follow the same process
+  illustrated for C1 in Turn 5 and Turn 6, respectively; those calls are not repeated here.
+  C2 pays the locked VIP bill of $8.10. Its end-of-Turn-8 state is shown above.
+  Both paths continue with the same remaining Waiter/Chef tasks from the documented replay.
+end note
+loop turn = 9 .. 18
+  G -> G ++ : runTurn(turn)
+  deactivate G
+end
+
+== After Turn 18 - Evaluate and display the result ==
+G -> G ++ : result = evaluateGameResult()
+note right of G
+  Checks config.isVictory(...):
+  paid customers >= 4, revenue >= $45.00,
+  average paid satisfaction >= 60.
+  GameConfig calls and GameResult construction omitted.
+end note
+deactivate G
+G -> U ++ : displayFinalResult(result)
+deactivate U
+note over M,R
+  <b>Different statistics, same victory outcome</b>
+  A - Serve C2 first: C2's payment satisfaction = 85; final average = 73.8.
+  B - Seat C3 first: C2's payment satisfaction = 80; final average = 72.8.
+  Both: 5 paid customers; revenue $62.10; 0 unhappy departures; VICTORY.
+end note
+deactivate G
+@enduml
