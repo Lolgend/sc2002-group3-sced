@@ -104,3 +104,70 @@ The original separation of customer creation from arrival timing and queue inser
 ### Regression check
 
 Regular customers still pay the full menu price, and orders retain the bill calculated when they are taken. The existing arrival schedule, staff task limits, service lifecycle and 18-turn ending rules are also retained. We checked the integrated Stage 2 game using the reproducible victory and defeat runs in the [Stage 2 Test Notes](test_notes/stage-2.md). Both runs completed all 18 turns with the documented results, providing regression evidence for the shared game flow.
+
+
+---
+
+# Restaurant Rush (Stage 3)
+
+Stage 3 adds a Host, combo meals and a Happy Hour pricing policy.
+
+- **Host**: Seats at most one queued customer per turn, in addition to the Waiter's task. The Manager chooses the Host's task before the Waiter's, and the Waiter can still seat customers.
+- **ComboMeal**: Made of two existing menu items. Preparation units are the sum of both components, and the price is 90% of their combined price, rounded to the nearest cent. The base menu offers Salad + Burger ($21.60, 2 units), Salad + Pasta ($24.30, 3 units) and Burger + Pasta ($29.70, 3 units).
+- **Combo choice rule**: Regular and VIP customers choose uniformly at random from all six menu items using the seeded random generator. The Critic still chooses the cheapest item, so it never orders a combo.
+- **Happy Hour**: The Manager may activate it once per game, at the start of a turn. It lasts for that turn and the next, and the start-of-turn display shows the remaining duration. Orders taken while it is active get 20% off, applied after the VIP discount and locked when the order is taken. During each active turn, customers still waiting for a table, an order or food recover 15 satisfaction at turn start, up to 100.
+
+## Reproducible Test Runs
+
+For turn-by-turn inputs to reproduce deterministic victory and defeat outcomes for stage-3, see the [Stage 3 Test Notes](test_notes/stage-3.md).
+
+## Stage 3 Change Analysis
+
+### 1. Add the ComboMeal menu item
+
+[Commit 019fb97](https://github.com/Lolgend/sc2002-group3-sced/commit/019fb9758a1ed6525c4da1797cd7d1003fda3b3b) adds `ComboMeal.java`, which implements the existing `MenuItem` interface and is composed of two `MenuItem` components. Its name, price and preparation units are derived from the components.
+
+Because `Order`, `Chef` and `ConsoleUI` already depend only on the `MenuItem` interface, a combo can be ordered, cooked and displayed without changing those classes. This reflects the Dependency Inversion Principle (DIP): high-level order handling depends on the abstraction rather than on `Dish`. Since `ComboMeal` can replace a `Dish` wherever a `MenuItem` is expected, it also follows the Liskov Substitution Principle (LSP).
+
+### 2. Register combo meals in the base menu
+
+[Commit c77590e](https://github.com/Lolgend/sc2002-group3-sced/commit/c77590e92163ca46c1799214e0d70df65ae46cb4) modifies `Menu.createBaseMenu()` to build the three combos from the existing dishes and add them to the menu. It also removes the old comment that listed only the three base dishes.
+
+This is a small registration change, as anticipated by Manual §4.4. The customers' existing `chooseMenuItem()` methods already select from the full menu, so the combo choice rule needs no change to the customer classes.
+
+### 3. Add the Happy Hour pricing policy
+
+[Commit 6626a96](https://github.com/Lolgend/sc2002-group3-sced/commit/6626a96d4e43f96e7a6fe3b23d60fc0418ccf4b5) adds `HappyHour.java`. It encapsulates the once-per-game rule, the two-turn duration, the 20% discount and the 15-point recovery value.
+
+All Happy Hour state is private and changes only through `activate()` and `endTurn()`, so other classes cannot put it into an invalid state. Keeping the policy in its own class supports the Single Responsibility Principle (SRP): customers keep their own pricing rules, while the time-limited promotion is managed separately.
+
+### 4. Apply the Happy Hour discount when taking orders
+
+[Commit f4ca599](https://github.com/Lolgend/sc2002-group3-sced/commit/f4ca599adc36c2e9d2c97c820db5a325b90cb3ba) modifies `Restaurant.java`, `Waiter.java` and `GameController.java`. `Restaurant` now owns a `HappyHour`, and `Waiter.takeOrder()` passes the customer's bill through `HappyHour.applyDiscount()`.
+
+This builds directly on Stage 2 Change 1. The customer still calculates its own bill, including the VIP discount, and Happy Hour is applied to that result. The required order of discounts is therefore expressed in a single line, and the final price is still stored in the `final` field of `Order`, so orders placed before activation are not affected.
+
+### 5. Add Happy Hour activation, display and satisfaction recovery
+
+[Commit 6ba6000](https://github.com/Lolgend/sc2002-group3-sced/commit/6ba600057663a22c3c77d8bcdcc4c0f3a9091da8) modifies `Customer.java`, `Restaurant.java`, `GameController.java` and `ConsoleUI.java`.
+
+- `Customer` gains `recoverSatisfaction()`, which reuses `isWaitingForService()`, the same rule that decides which customers lose satisfaction.
+- `Restaurant` gains `processHappyHourRecovery()`.
+- `GameController` offers the activation choice at the start of each turn while Happy Hour is still available, and calls `endTurn()` after the summary.
+- `ConsoleUI` displays the Happy Hour status and remaining turns.
+
+The activation option is only offered while Happy Hour is available, in the same way the Waiter and Chef menus only list legal actions. The rule itself stays in `HappyHour`, and the UI only collects the choice and displays the state.
+
+### 6. Add the Host staff role
+
+[Commit d46ef6e](https://github.com/Lolgend/sc2002-group3-sced/commit/d46ef6e41e56db112804e433b603015182a1a022) adds `Host.java` and `HostAction.java`, and modifies `Restaurant.java`, `GameController.java` and `ConsoleUI.java`. `Host` extends `Staff`, and `HostAction` follows the same value-object pattern as `ChefAction`.
+
+By extending `Staff`, the Host inherits the existing one-action-per-turn rule without modification, which follows the Open–Closed Principle (OCP). The Waiter's legal actions are built after the Host acts, so a table seated by the Host is no longer offered to the Waiter.
+
+We considered moving the shared seating logic into `Staff` so that `Waiter` and `Host` reuse it. We decided against it because it would change the stable Stage 1 `Waiter` class for a two-line duplication, and the Waiter's seating method also validates the queue in a way the Host does not need.
+
+### Regression check
+
+The six-step turn sequence, staff task limits, VIP and Critic behaviour, satisfaction decay, abandonment, payment and the 18-turn ending rules are unchanged. VIP orders still receive the 10% discount (for example, $19.44 for a Salad + Burger Combo), and the Critic still chooses Salad.
+
+Because the menu now contains six items and each turn has extra Happy Hour and Host prompts, the Stage 2 input sequences do not replay the same game in Stage 3. New victory and defeat runs are recorded in the [Stage 3 Test Notes](test_notes/stage-3.md), and both complete all 18 turns with the documented results.
