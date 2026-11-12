@@ -87,6 +87,7 @@ public class ConsoleUI {
 
         // Staff Capacity
         out.println("  Staff Ready:");
+        out.println("    - Host   : 1 seating action available (Seat, or Wait)");
         out.println("    - Waiter : 1 action available (Seat, Take Order, Serve, or Wait)");
         out.println("    - Chef   : 1 cooking unit available (Prepare Order, or Wait)");
         out.println("    - Cashier: Automatic (Collects payment from oldest ready customer)");
@@ -161,6 +162,10 @@ public class ConsoleUI {
     public void displayArrival(Customer customer, int turn) {
         out.printf(">> [Arrival] Customer #%d (%s) arrived and joined the waiting queue (Satisfaction: %d).%n",
                 customer.getId(), customer.getCustomerType(), customer.getSatisfaction());
+    }
+
+    public void displayHostAction(String description) {
+        out.printf(">> [Host] %s%n", description);
     }
 
     public void displayWaiterAction(String description) {

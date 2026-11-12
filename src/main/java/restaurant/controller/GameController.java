@@ -12,6 +12,7 @@ import restaurant.model.Restaurant;
 import restaurant.model.Table;
 import restaurant.staff.Cashier;
 import restaurant.staff.Chef;
+import restaurant.staff.Host;
 import restaurant.staff.Waiter;
 
 import java.util.ArrayList;
@@ -72,6 +73,7 @@ public class GameController {
         restaurant.getWaiter().resetTurnState();
         restaurant.getChef().resetTurnState();
         restaurant.getCashier().resetTurnState();
+        restaurant.getHost().resetTurnState();
 
         // Step 1: Arrivals
         executeStep1Arrivals(turn);
@@ -119,6 +121,15 @@ public class GameController {
     }
 
     private void executeStep2And3StaffActions(int turn) {
+        List<HostAction> hostActions = buildLegalHostActions();
+        List<String> hostDescriptions = new ArrayList<>();
+        for (HostAction a : hostActions) {
+            hostDescriptions.add(a.getDescription());
+        }
+
+        int hostChoice = ui.promptMenuChoice("Assign Host Task", hostDescriptions);
+        executeHostAction(hostActions.get(hostChoice));
+
         // --- 1. Waiter Phase ---
         List<WaiterAction> waiterActions = buildLegalWaiterActions();
         List<String> waiterDescriptions = new ArrayList<>();
@@ -140,6 +151,31 @@ public class GameController {
         int chefChoice = ui.promptMenuChoice("Assign Chef Task", chefDescriptions);
         ChefAction chosenChefAction = chefActions.get(chefChoice);
         executeChefAction(chosenChefAction);
+    }
+
+    public List<HostAction> buildLegalHostActions() {
+        List<HostAction> actions = new ArrayList<>();
+        actions.add(HostAction.createWait());
+
+        Table lowestFreeTable = getLowestNumberedFreeTable();
+        if (lowestFreeTable != null) {
+            for (Customer c : restaurant.getWaitingQueue().getCustomers()) {
+                actions.add(HostAction.createSeat(c, lowestFreeTable));
+            }
+        }
+
+        return actions;
+    }
+
+    private void executeHostAction(HostAction action) {
+        Host host = restaurant.getHost();
+        if (action.isWait()) {
+            host.waitTurn();
+            ui.displayHostAction("Host waited (did nothing).");
+        } else {
+            host.seatCustomer(action.getCustomer(), action.getTable(), restaurant.getWaitingQueue());
+            ui.displayHostAction(action.getDescription());
+        }
     }
 
     public List<WaiterAction> buildLegalWaiterActions() {

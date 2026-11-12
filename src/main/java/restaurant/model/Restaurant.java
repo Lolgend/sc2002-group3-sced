@@ -2,6 +2,7 @@ package restaurant.model;
 
 import restaurant.staff.Cashier;
 import restaurant.staff.Chef;
+import restaurant.staff.Host;
 import restaurant.staff.Waiter;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class Restaurant {
     private final Waiter waiter;
     private final Chef chef;
     private final Cashier cashier;
+    private final Host host;
     private final Random random;
     private final HappyHour happyHour;
 
@@ -59,6 +61,7 @@ public class Restaurant {
         this.waiter = new Waiter("Waiter");
         this.chef = new Chef("Chef");
         this.cashier = new Cashier("Cashier");
+        this.host = new Host("Host");
         this.random = new Random(config.getSeed());
         this.happyHour = new HappyHour();
 
@@ -102,6 +105,10 @@ public class Restaurant {
 
     public Cashier getCashier() {
         return cashier;
+    }
+
+    public Host getHost() {
+        return host;
     }
 
     public Random getRandom() {
