@@ -18,16 +18,17 @@ public class Menu {
         return items;
     }
 
-    /**
-     * - Salad: $9.00 (900 cents), 1 prep unit
-     * - Burger: $15.00 (1500 cents), 1 prep unit
-     * - Pasta: $18.00 (1800 cents), 2 prep units
-     */
     public static Menu createBaseMenu() {
         List<MenuItem> baseItems = new ArrayList<>();
-        baseItems.add(new Dish("Salad", 900, 1));
-        baseItems.add(new Dish("Burger", 1500, 1));
-        baseItems.add(new Dish("Pasta", 1800, 2));
+        Dish salad = new Dish("Salad", 900, 1);
+        Dish burger = new Dish("Burger", 1500, 1);
+        Dish pasta = new Dish("Pasta", 1800, 2);
+        baseItems.add(salad);
+        baseItems.add(burger);
+        baseItems.add(pasta);
+        baseItems.add(new ComboMeal(salad, burger));
+        baseItems.add(new ComboMeal(salad, pasta));
+        baseItems.add(new ComboMeal(burger, pasta));
         return new Menu(baseItems);
     }
 }
