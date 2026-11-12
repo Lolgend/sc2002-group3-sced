@@ -84,6 +84,14 @@ public abstract class Customer {
     }
 
 
+    public boolean recoverSatisfaction(int points) {
+        if (!isWaitingForService()) {
+            return false;
+        }
+        this.satisfaction = Math.min(100, this.satisfaction + points);
+        return true;
+    }
+
     public boolean applyTurnEndSatisfactionDecay() {
         if (!isWaitingForService()) {
             return false;

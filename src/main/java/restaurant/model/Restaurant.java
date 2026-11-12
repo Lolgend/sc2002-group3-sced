@@ -226,6 +226,27 @@ public class Restaurant {
         return finishedTables;
     }
 
+    public List<Customer> processHappyHourRecovery() {
+        List<Customer> recovered = new ArrayList<>();
+        if (!happyHour.isActive()) {
+            return recovered;
+        }
+
+        List<Customer> candidates = new ArrayList<>(waitingQueue.getCustomers());
+        for (Table table : tables) {
+            if (!table.isFree()) {
+                candidates.add(table.getCurrentCustomer());
+            }
+        }
+
+        for (Customer c : candidates) {
+            if (c.recoverSatisfaction(happyHour.getSatisfactionRecovery())) {
+                recovered.add(c);
+            }
+        }
+        return recovered;
+    }
+
     public List<Customer> processTurnEndDecayAndAbandonment() {
         List<Customer> abandonedThisTurn = new ArrayList<>();
 

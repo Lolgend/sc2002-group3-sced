@@ -5,6 +5,7 @@ import restaurant.model.Customer;
 import restaurant.model.CustomerState;
 import restaurant.model.GameConfig;
 import restaurant.model.GameResult;
+import restaurant.model.HappyHour;
 import restaurant.model.Order;
 import restaurant.model.OrderStatus;
 import restaurant.model.Restaurant;
@@ -75,6 +76,8 @@ public class GameController {
         // Step 1: Arrivals
         executeStep1Arrivals(turn);
 
+        executeHappyHourStart();
+
         // Step 2 & 3: Manager Choices, Kitchen, and Serving
         executeStep2And3StaffActions(turn);
 
@@ -86,6 +89,8 @@ public class GameController {
 
         // Step 6: End-of-Turn Summary
         executeStep6EndSummary(turn);
+
+        restaurant.getHappyHour().endTurn();
     }
 
     private void executeStep1Arrivals(int turn) {
@@ -94,6 +99,23 @@ public class GameController {
             ui.displayArrival(arrived, turn);
         }
         ui.displayStartOfTurn(turn, restaurant);
+    }
+
+    private void executeHappyHourStart() {
+        HappyHour happyHour = restaurant.getHappyHour();
+        if (happyHour.isAvailable()) {
+            List<String> options = List.of(
+                    "Keep Happy Hour off",
+                    "Activate Happy Hour (20% off orders taken this turn and next turn)");
+            if (ui.promptMenuChoice("Happy Hour", options) == 1) {
+                happyHour.activate();
+                ui.displayHappyHourActivated(happyHour);
+            }
+        }
+
+        for (Customer c : restaurant.processHappyHourRecovery()) {
+            ui.displayHappyHourRecovery(c, happyHour.getSatisfactionRecovery());
+        }
     }
 
     private void executeStep2And3StaffActions(int turn) {

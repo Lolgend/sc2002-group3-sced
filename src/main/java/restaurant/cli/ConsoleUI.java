@@ -2,6 +2,7 @@ package restaurant.cli;
 
 import restaurant.model.Customer;
 import restaurant.model.GameResult;
+import restaurant.model.HappyHour;
 import restaurant.model.Order;
 import restaurant.model.Restaurant;
 import restaurant.model.Table;
@@ -47,6 +48,7 @@ public class ConsoleUI {
                 restaurant.getPaidCustomersCount(),
                 restaurant.getAveragePaidSatisfactionString(),
                 restaurant.getAbandonedCustomersCount());
+        out.printf("  Happy Hour: %s%n", describeHappyHour(restaurant.getHappyHour()));
         out.println("--------------------------------------------------------------------------------");
 
         // Waiting Queue
@@ -133,6 +135,27 @@ public class ConsoleUI {
                         line, options.size() - 1);
             }
         }
+    }
+
+    private String describeHappyHour(HappyHour happyHour) {
+        if (happyHour.isActive()) {
+            return String.format("ACTIVE (%d turn%s remaining, including this turn)",
+                    happyHour.getRemainingTurns(), happyHour.getRemainingTurns() == 1 ? "" : "s");
+        }
+        if (happyHour.isAvailable()) {
+            return "AVAILABLE (can be activated once per game)";
+        }
+        return "USED";
+    }
+
+    public void displayHappyHourActivated(HappyHour happyHour) {
+        out.printf(">> [Happy Hour] Happy Hour is now ACTIVE for %d turns: 20%% off new orders, waiting customers recover %d satisfaction each turn.%n",
+                happyHour.getRemainingTurns(), happyHour.getSatisfactionRecovery());
+    }
+
+    public void displayHappyHourRecovery(Customer customer, int points) {
+        out.printf(">> [Happy Hour] Customer #%d (%s) recovered up to %d satisfaction (Satisfaction: %d).%n",
+                customer.getId(), customer.getCustomerType(), points, customer.getSatisfaction());
     }
 
     public void displayArrival(Customer customer, int turn) {
