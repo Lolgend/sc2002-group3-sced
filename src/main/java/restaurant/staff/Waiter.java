@@ -1,6 +1,7 @@
 package restaurant.staff;
 
 import restaurant.model.Customer;
+import restaurant.model.HappyHour;
 import restaurant.model.Menu;
 import restaurant.model.MenuItem;
 import restaurant.model.Order;
@@ -35,14 +36,15 @@ public class Waiter extends Staff {
         markActed();
     }
 
-    public Order takeOrder(int orderId, Customer customer, Table table, Menu menu, Random random) {
+    public Order takeOrder(int orderId, Customer customer, Table table, Menu menu, Random random,
+                           HappyHour happyHour) {
         Objects.requireNonNull(customer, "Customer cannot be null");
         Objects.requireNonNull(table, "Table cannot be null");
         Objects.requireNonNull(menu, "Menu cannot be null");
         Objects.requireNonNull(random, "Random cannot be null");
 
         MenuItem chosenItem = customer.chooseMenuItem(menu, random);
-        int finalPriceCents = customer.calculateBillCents(chosenItem);
+        int finalPriceCents = happyHour.applyDiscount(customer.calculateBillCents(chosenItem));
         Order order = new Order(orderId, customer, table, chosenItem, finalPriceCents);
         table.assignOrder(order);
         markActed();

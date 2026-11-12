@@ -27,6 +27,7 @@ public class Restaurant {
     private final Chef chef;
     private final Cashier cashier;
     private final Random random;
+    private final HappyHour happyHour;
 
     private int nextCustomerId;
     private int nextOrderId;
@@ -59,6 +60,7 @@ public class Restaurant {
         this.chef = new Chef("Chef");
         this.cashier = new Cashier("Cashier");
         this.random = new Random(config.getSeed());
+        this.happyHour = new HappyHour();
 
         this.nextCustomerId = 1;
         this.nextOrderId = 1;
@@ -104,6 +106,10 @@ public class Restaurant {
 
     public Random getRandom() {
         return random;
+    }
+
+    public HappyHour getHappyHour() {
+        return happyHour;
     }
 
     public int getRevenueCents() {

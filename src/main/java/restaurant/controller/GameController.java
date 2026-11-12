@@ -179,7 +179,7 @@ public class GameController {
             case TAKE_ORDER -> {
                 int orderId = restaurant.allocateNextOrderId();
                 Order order = waiter.takeOrder(orderId, action.getCustomer(), action.getTable(),
-                        restaurant.getMenu(), restaurant.getRandom());
+                        restaurant.getMenu(), restaurant.getRandom(), restaurant.getHappyHour());
                 restaurant.recordOrder(order);
                 ui.displayWaiterAction(action.getDescription());
                 ui.displayOrderTaken(order);
