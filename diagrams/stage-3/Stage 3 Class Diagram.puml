@@ -1,0 +1,499 @@
+@startuml Stage_3_Class_Diagram
+
+title Restaurant Rush - Stage 3 Class Diagram
+
+skinparam classAttributeIconSize 0
+left to right direction
+skinparam linetype ortho
+skinparam shadowing false
+skinparam roundcorner 6
+skinparam nodesep 100
+skinparam ranksep 120
+skinparam defaultFontSize 20
+skinparam Padding 8
+skinparam ArrowFontSize 17
+skinparam titleFontSize 36
+skinparam ArrowThickness 1
+skinparam groupInheritance 1
+skinparam class {
+    BackgroundColor #ECECEC
+    HeaderBackgroundColor #ECECEC
+    BorderColor #555555
+    ArrowColor #222222
+    BackgroundColor<<boundary>> #DCEBFA
+    HeaderBackgroundColor<<boundary>> #DCEBFA
+    BorderColor<<boundary>> #1F5FA8
+    BackgroundColor<<control>> #FDE5C8
+    HeaderBackgroundColor<<control>> #FDE5C8
+    BorderColor<<control>> #B35C00
+    BackgroundColor<<entity>> #DDF2DD
+    HeaderBackgroundColor<<entity>> #DDF2DD
+    BorderColor<<entity>> #2E7D32
+    BackgroundColor<<enumeration>> #EADCF5
+    HeaderBackgroundColor<<enumeration>> #EADCF5
+    BorderColor<<enumeration>> #6A2C9A
+    BackgroundColor<<interface>> #D3F0EE
+    HeaderBackgroundColor<<interface>> #D3F0EE
+    BorderColor<<interface>> #00796B
+    BackgroundColor<<record>> #ECECEC
+    HeaderBackgroundColor<<record>> #ECECEC
+    BorderColor<<record>> #555555
+}
+
+skinparam legend {
+    BackgroundColor #FFFFFF
+    BorderColor #333333
+}
+hide empty members
+hide circle
+
+class Main {
+    + {static} main(args: String[]): void
+}
+
+class ConsoleUI <<boundary>> {
+    - scanner: Scanner {readOnly}
+    - out: PrintStream {readOnly}
+    --
+    + {static} formatMoney(cents: int): String
+    + displayStartOfTurn(turn: int,\n    restaurant: Restaurant): void
+    + promptMenuChoice(promptTitle: String,\n    options: List<String>): int
+    - describeHappyHour(happyHour: HappyHour): String
+    + displayHappyHourActivated(happyHour: HappyHour): void
+    + displayHappyHourRecovery(customer: Customer, points: int): void
+    + displayArrival(customer: Customer, turn: int): void
+    + displayHostAction(description: String): void
+    + displayWaiterAction(description: String): void
+    + displayOrderTaken(order: Order): void
+    + displayChefAction(description: String): void
+    + displayOrderCooked(order: Order): void
+    + displayPaymentCollected(order: Order): void
+    + displayEatingFinished(customer: Customer,\n    table: Table): void
+    + displayAbandonment(customer: Customer): void
+    + displayTurnSummary(turn: int,\n    restaurant: Restaurant): void
+    + displayFinalResult(result: GameResult): void
+}
+
+class GameController <<control>> {
+    - restaurant: Restaurant {readOnly}
+    - ui: ConsoleUI {readOnly}
+    --
+    + runGame(): void
+    + evaluateGameResult(): GameResult
+    + runTurn(turn: int): void
+    - executeStep1Arrivals(turn: int): void
+    - executeHappyHourStart(): void
+    - executeStep2And3StaffActions(turn: int): void
+    + buildLegalHostActions(): List<HostAction>
+    - executeHostAction(action: HostAction): void
+    + buildLegalWaiterActions(): List<WaiterAction>
+    - getLowestNumberedFreeTable(): Table
+    - executeWaiterAction(action: WaiterAction,\n    turn: int): void
+    + buildLegalChefActions(): List<ChefAction>
+    - executeChefAction(action: ChefAction): void
+    - executeStep4EatingAndPayment(turn: int): void
+    - executeStep5WaitingAndAbandonment(): void
+    - executeStep6EndSummary(turn: int): void
+}
+
+enum WaiterActionType <<enumeration>> {
+    WAIT
+    SEAT_CUSTOMER
+    TAKE_ORDER
+    SERVE_ORDER
+}
+
+class WaiterAction {
+    - type: WaiterActionType {readOnly}
+    - description: String {readOnly}
+    - customer: Customer [0..1] {readOnly}
+    - table: Table [0..1] {readOnly}
+    - order: Order [0..1] {readOnly}
+    --
+    + {static} createWait(): WaiterAction
+    + {static} createSeat(customer: Customer,\n    table: Table): WaiterAction
+    + {static} createTakeOrder(customer: Customer,\n    table: Table): WaiterAction
+    + {static} createServeOrder(order: Order): WaiterAction
+}
+
+class HostAction {
+    - wait: boolean {readOnly}
+    - description: String {readOnly}
+    - customer: Customer [0..1] {readOnly}
+    - table: Table [0..1] {readOnly}
+    --
+    + {static} createWait(): HostAction
+    + {static} createSeat(customer: Customer,\n    table: Table): HostAction
+}
+
+class ChefAction {
+    - wait: boolean {readOnly}
+    - description: String {readOnly}
+    - order: Order [0..1] {readOnly}
+    --
+    + {static} createWait(): ChefAction
+    + {static} createCook(order: Order): ChefAction
+}
+
+abstract class Staff <<entity>> {
+    - name: String {readOnly}
+    - actedThisTurn: boolean
+    --
+    + resetTurnState(): void
+    # markActed(): void
+}
+
+class Waiter <<entity>> {
+    + seatCustomer(customer: Customer, table: Table,\n    queue: WaitingQueue): void
+    + takeOrder(orderId: int, customer: Customer,\n    table: Table, menu: Menu, random: Random,\n    happyHour: HappyHour): Order
+    + serveOrder(order: Order, turn: int): void
+    + waitTurn(): void
+}
+
+class Host <<entity>> {
+    + seatCustomer(customer: Customer, table: Table,\n    queue: WaitingQueue): void
+    + waitTurn(): void
+}
+
+class Chef <<entity>> {
+    + prepareOrder(order: Order): void
+    + waitTurn(): void
+}
+
+class Cashier <<entity>> {
+    + processOldestReadyPayment(\n    tables: List<Table>): Order
+}
+
+class Restaurant <<entity>> {
+    - config: GameConfig {readOnly}
+    - waitingQueue: WaitingQueue {readOnly}
+    - tables: List<Table> {readOnly}
+    - menu: Menu {readOnly}
+    - orders: List<Order> {readOnly}
+    - waiter: Waiter {readOnly}
+    - chef: Chef {readOnly}
+    - cashier: Cashier {readOnly}
+    - host: Host {readOnly}
+    - happyHour: HappyHour {readOnly}
+    - random: Random {readOnly}
+    - nextCustomerId: int
+    - nextOrderId: int
+    - nextReadyToPaySeq: int
+    - revenueCents: int
+    - paidCustomersCount: int
+    - totalPaidSatisfaction: int
+    - abandonedCustomersCount: int
+    --
+    + getOrders(): List<Order>
+    + getHost(): Host
+    + getHappyHour(): HappyHour
+    + getServedCustomersCount(): int
+    + getAveragePaidSatisfaction(): double
+    + getAveragePaidSatisfactionString(): String
+    + allocateNextOrderId(): int
+    + allocateNextReadyToPaySequence(): int
+    + recordOrder(order: Order): void
+    + recordPayment(order: Order): void
+    + processArrival(turn: int): Customer
+    # createCustomer(id: int, turn: int): Customer
+    + processEatingCompletions(turn: int): List<Table>
+    + processHappyHourRecovery(): List<Customer>
+    + processTurnEndDecayAndAbandonment(): List<Customer>
+    + isVictory(): boolean
+}
+
+class GameConfig {
+    + {static} DEFAULT_MAX_TURNS: int = 18 {readOnly}
+    + {static} DEFAULT_NUM_TABLES: int = 2 {readOnly}
+    - {static} DEFAULT_ARRIVAL_TURNS: int[]\n    = {1, 4, 7, 10, 13, 16} {readOnly}
+    + {static} DEFAULT_TARGET_PAID_CUSTOMERS: int = 4 {readOnly}
+    + {static} DEFAULT_TARGET_REVENUE_CENTS: int = 4500 {readOnly}
+    + {static} DEFAULT_TARGET_AVG_SATISFACTION: double = 60.0 {readOnly}
+    + {static} DEFAULT_SEED: long = 42L {readOnly}
+    - maxTurns: int {readOnly}
+    - numTables: int {readOnly}
+    - arrivalTurns: int[] {readOnly}
+    - targetPaidCustomers: int {readOnly}
+    - targetRevenueCents: int {readOnly}
+    - targetAvgSatisfaction: double {readOnly}
+    - seed: long {readOnly}
+    --
+    + {static} createBaseConfig(): GameConfig
+    + getArrivalTurns(): int[]
+    + isArrivalTurn(turn: int): boolean
+    + isPaidTargetMet(paidCount: int): boolean
+    + isRevenueTargetMet(revenueCents: int): boolean
+    + isSatisfactionTargetMet(avgSatisfaction: double): boolean
+    + isVictory(paidCount: int, revenueCents: int,\n    avgSatisfaction: double): boolean
+}
+
+class GameResult <<record>> {
+    - isVictory: boolean {readOnly}
+    - paidCustomersCount: int {readOnly}
+    - targetPaidCustomers: int {readOnly}
+    - paidCustomersTargetMet: boolean {readOnly}
+    - revenueCents: int {readOnly}
+    - targetRevenueCents: int {readOnly}
+    - revenueTargetMet: boolean {readOnly}
+    - averagePaidSatisfaction: double {readOnly}
+    - targetAverageSatisfaction: double {readOnly}
+    - satisfactionTargetMet: boolean {readOnly}
+    - abandonedCustomersCount: int {readOnly}
+    --
+    + getAveragePaidSatisfactionString(): String
+}
+
+class WaitingQueue <<entity>> {
+    - customers: List<Customer> {readOnly}
+    --
+    + addCustomer(customer: Customer): void
+    + removeCustomer(customer: Customer): boolean
+    + getCustomers(): List<Customer>
+    + isEmpty(): boolean
+    + size(): int
+}
+
+class Table <<entity>> {
+    - tableNumber: int {readOnly}
+    - currentCustomer: Customer [0..1]
+    - currentOrder: Order [0..1]
+    --
+    + isFree(): boolean
+    + seatCustomer(customer: Customer): void
+    + assignOrder(order: Order): void
+    + freeTable(): void
+}
+
+abstract class Customer <<entity>> {
+    - id: int {readOnly}
+    - arrivalTurn: int {readOnly}
+    - satisfaction: int
+    - state: CustomerState
+    - satisfactionAtPayment: Integer [0..1]
+    - servedTurn: int
+    - readyToPaySequence: int
+    --
+    + {abstract} getCustomerType(): String
+    + {abstract} getWaitingSatisfactionLoss(): int
+    + chooseMenuItem(menu: Menu, random: Random): MenuItem
+    + calculateBillCents(item: MenuItem): int
+    + hasFinishedEating(currentTurn: int): boolean
+    + isWaitingForService(): boolean
+    + recoverSatisfaction(points: int): boolean
+    + applyTurnEndSatisfactionDecay(): boolean
+    + markSeated(): void
+    + markOrderPlaced(): void
+    + markServed(turn: int): void
+    + markReadyToPay(sequenceNumber: int): void
+    + markPaid(): void
+}
+
+class RegularCustomer <<entity>> {
+    + getCustomerType(): String
+    + getWaitingSatisfactionLoss(): int
+}
+
+class VIPCustomer <<entity>> {
+    + getCustomerType(): String
+    + getWaitingSatisfactionLoss(): int
+    + calculateBillCents(item: MenuItem): int
+}
+
+class CriticCustomer <<entity>> {
+    + getCustomerType(): String
+    + getWaitingSatisfactionLoss(): int
+    + chooseMenuItem(menu: Menu, random: Random): MenuItem
+}
+
+enum CustomerState <<enumeration>> {
+    WAITING_IN_QUEUE
+    SEATED
+    WAITING_FOR_FOOD
+    EATING
+    READY_TO_PAY
+    PAID
+    ABANDONED
+}
+
+class Order <<entity>> {
+    - id: int {readOnly}
+    - customer: Customer {readOnly}
+    - table: Table {readOnly}
+    - menuItem: MenuItem {readOnly}
+    - finalPriceCents: int {readOnly}
+    - totalPrepUnits: int {readOnly}
+    - completedPrepUnits: int
+    - status: OrderStatus
+    --
+    + advancePreparation(): void
+    + markServed(): void
+    + markPaid(): void
+    + markCancelled(): void
+}
+
+enum OrderStatus <<enumeration>> {
+    IN_PROGRESS
+    READY
+    SERVED
+    PAID
+    CANCELLED
+}
+
+class Menu <<entity>> {
+    - items: List<MenuItem> {readOnly}
+    --
+    + {static} createBaseMenu(): Menu
+}
+
+interface MenuItem <<interface>> {
+    + getName(): String
+    + getPriceCents(): int
+    + getPrepUnits(): int
+}
+
+class ComboMeal <<entity>> {
+    - firstItem: MenuItem {readOnly}
+    - secondItem: MenuItem {readOnly}
+    --
+    + getName(): String
+    + getPriceCents(): int
+    + getPrepUnits(): int
+}
+
+class HappyHour <<entity>> {
+    - {static} DURATION_TURNS: int = 2 {readOnly}
+    - {static} DISCOUNT_MULTIPLIER: double = 0.8 {readOnly}
+    - {static} SATISFACTION_RECOVERY: int = 15 {readOnly}
+    - used: boolean
+    - remainingTurns: int
+    --
+    + isAvailable(): boolean
+    + isActive(): boolean
+    + getRemainingTurns(): int
+    + getSatisfactionRecovery(): int
+    + activate(): void
+    + endTurn(): void
+    + applyDiscount(priceCents: int): int
+}
+
+class Dish <<entity>> {
+    - name: String {readOnly}
+    - priceCents: int {readOnly}
+    - prepUnits: int {readOnly}
+}
+
+Main -[#7C8998,dashed]-> ConsoleUI
+Main -[#7C8998,dashed]--> GameController
+Main -[#7C8998,dashed]-> Restaurant
+
+GameController --> "1" ConsoleUI
+GameController --> "1" Restaurant
+GameController -[#7C8998,dashed]-> WaiterAction
+GameController -[#7C8998,dashed]-> ChefAction
+GameController -[#7C8998,dashed]-> HostAction
+GameController -[#7C8998,dashed]-> GameResult
+ConsoleUI -[#7C8998,dashed]-> GameResult
+WaiterAction --> "1" WaiterActionType
+
+Restaurant "1" *-- "1" GameConfig
+Restaurant "1" *-- "1" WaitingQueue
+Restaurant "1" *-- "1..*" Table
+Restaurant "1" *-- "1" Menu
+Restaurant "1" *-- "0..*" Order
+Restaurant *-- "1" Waiter
+Restaurant *-- "1" Chef
+Restaurant *-- "1" Cashier
+Restaurant *-- "1" Host
+Restaurant "1" *-- "1" HappyHour
+
+Staff <|-right- Waiter
+Staff <|-right- Chef
+Staff <|-right- Cashier
+Staff <|-right- Host
+Waiter -[#7C8998,dashed]-> Order
+Waiter -[#7C8998,dashed]-> HappyHour
+Chef -[#7C8998,dashed]-> Order
+Cashier -[#7C8998,dashed]-> Order
+
+WaitingQueue "0..1" o-- "0..*" Customer
+Table "0..1" o-- "0..1" Customer
+Order "0..1" -[norank]-o "0..1" Table
+Order "0..1" --> "1" Customer
+Order "0..*" --> "1" Table
+Order "0..*" --> "1" MenuItem
+Order --> "1" OrderStatus
+Menu "1" *-- "1..*" MenuItem
+Customer --> "1" CustomerState
+Customer <|-- RegularCustomer
+Customer <|-- VIPCustomer
+Customer <|-- CriticCustomer
+MenuItem <|.. Dish
+MenuItem <|.. ComboMeal
+ComboMeal "0..*" o-- "2" MenuItem : components
+
+note top of Order
+  <b>Encapsulation of State and Pricing</b>
+  • Private mutable fields (<i>status</i>, <i>completedPrepUnits</i>)
+    can only transition via guarded domain methods:
+    <i>advancePreparation()</i>, <i>markServed()</i>,
+    <i>markPaid()</i>, and <i>markCancelled()</i>.
+  • <i>finalPriceCents</i> is immutable and locked at order creation.
+end note
+
+note bottom of Customer
+  <b>Polymorphic Customer Behaviour</b>
+  • <i>applyTurnEndSatisfactionDecay()</i> calls
+    <i>getWaitingSatisfactionLoss()</i> on the customer object.
+  • Regular customers lose 8 points and pay full price.
+  • VIP customers lose 5 points and receive 10% off.
+  • Critics lose 12 points and choose the cheapest item.
+  • Regular and VIP customers choose from all six menu items.
+  • <i>recoverSatisfaction()</i> restores waiting customers
+    by up to 15 points during Happy Hour, capped at 100.
+end note
+
+note top of Restaurant
+  <b>Restaurant Composition</b>
+  • <i>Restaurant</i> owns the lifecycle of its <i>Table</i>s,
+    <i>WaitingQueue</i>, <i>Menu</i>, <i>GameConfig</i>, <i>Staff</i>, and <i>HappyHour</i>.
+  • <i>createCustomer()</i> creates VIP C2, Critic C5,
+    and Regular customers for the other arrivals.
+  • Collections (<i>tables</i>, <i>orders</i>) and <i>WaitingQueue</i>
+    expose unmodifiable views to prevent external mutation.
+end note
+
+note bottom of ComboMeal
+  <b>Menu Abstraction and Shared Components</b>
+  • <i>Dish</i> and <i>ComboMeal</i> implement <i>MenuItem</i>.
+  • Each combo references two existing menu items.
+  • Preparation units are summed. The price is 90% of the sum,
+    rounded to the nearest cent. Components remain in the menu.
+  • <i>Order</i> handles either implementation through <i>MenuItem</i>.
+end note
+
+
+
+note top of HappyHour
+  <b>Encapsulated Promotion Policy</b>
+  • Activation is available once per game and lasts two turns.
+  • New orders receive 20% off after the VIP discount.
+  • <i>Order.finalPriceCents</i> retains the price calculated
+    when the order is placed.
+  • <i>GameController</i> coordinates activation and turn expiry.
+  • <i>Restaurant</i> applies recovery to waiting customers.
+end note
+
+legend bottom right
+  |= Colour |= Category |
+  |<#DCEBFA>   | Boundary (UI) |
+  |<#FDE5C8>   | Control |
+  |<#DDF2DD>   | Entity |
+  |<#EADCF5>   | Enumeration |
+  |<#D3F0EE>   | Interface |
+  |<#ECECEC>   | Misc (bootstrap, actions, config, result) |
+  Class compartments show stored attributes and key operations.
+  Parameter types identify additional dependencies.
+  Restaurant configuration values are defined in GameConfig.
+endlegend
+
+@enduml
