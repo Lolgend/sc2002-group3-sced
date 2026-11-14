@@ -1,10 +1,13 @@
-# Restaurant Rush (Stage 1)
+# Restaurant Rush
 
 A turn-based command-line restaurant management game in Java (JDK 17+).
 
-## Repository
+## Diagrams
 
-[Lolgend/sc2002-group3-sced](https://github.com/Lolgend/sc2002-group3-sced)
+- **Stage 1 Class Diagram:** [Stage 1 Class Diagram](diagrams\stage-1\Stage_1_Class_Diagram.png)
+- **Stage 2 Class Diagram:** [Stage 2 Class Diagram](diagrams\stage-2\Stage_2_Class_Diagram.png)
+- **Stage 3 Class Diagram:** [Stage 3 Class Diagram](diagrams\stage-3\Stage_3_Class_Diagram.png)
+- **Sequence Diagram (Stage 2):** [Sequence Diagram](diagrams/stage-2/Stage_2_Sequence_Diagram.png)
 
 ## Prerequisites
 
@@ -34,12 +37,14 @@ java -cp out restaurant.Main
 
 ## Reproducible Test Runs
 
-For turn-by-turn inputs to reproduce deterministic victory and defeat outcomes for stage-1, see the [Stage 1 Test Notes](test_notes/stage-1.md).
-
+For turn-by-turn inputs to reproduce deterministic victory and defeat outcomes for each stage:
+- **Stage 1:** See the [Stage 1 Test Notes](test_notes/stage-1.md)
+- **Stage 2:** See the [Stage 2 Test Notes](test_notes/stage-2.md)
+- **Stage 3:** See the [Stage 3 Test Notes](test_notes/stage-3.md)
 
 ---
 
-# Restaurant Rush (Stage 2)
+# Stage 2 Implementation
 
 Stage 2 adds VIP and Critic customers with different waiting penalties, menu preferences and billing rules.
 
@@ -48,14 +53,6 @@ Stage 2 adds VIP and Critic customers with different waiting penalties, menu pre
 - **Critic customers**: Lose 12 satisfaction points per waiting turn and pay the full price. They choose the cheapest menu item; ties are resolved by choosing the first item in menu order.
 
 The six arrival turns are 1, 4, 7, 10, 13 and 16. Customer 2 is a VIP arriving on turn 4, and Customer 5 is a Critic arriving on turn 13. The other four customers are Regular customers.
-
-## Reproducible Test Runs
-
-For turn-by-turn inputs to reproduce deterministic victory and defeat outcomes for stage-2, see the [Stage 2 Test Notes](test_notes/stage-2.md).
-
-## Sequence Diagram
-
-[View the Stage 2 Sequence Diagram](diagrams/stage-2/Stage_2_Sequence_Diagram.png) · [PlantUML source](diagrams/stage-2/Stage%202%20Sequence%20Diagram.puml)
 
 The diagram shows the restaurant service flow, VIP pricing, and how the manager's service priority affects customer satisfaction and final statistics.
 
@@ -108,7 +105,7 @@ Regular customers still pay the full menu price, and orders retain the bill calc
 
 ---
 
-# Restaurant Rush (Stage 3)
+# Stage 3 Implementation
 
 Stage 3 adds a Host, combo meals and a Happy Hour pricing policy.
 
@@ -116,10 +113,6 @@ Stage 3 adds a Host, combo meals and a Happy Hour pricing policy.
 - **ComboMeal**: Made of two existing menu items. Preparation units are the sum of both components, and the price is 90% of their combined price, rounded to the nearest cent. The base menu offers Salad + Burger ($21.60, 2 units), Salad + Pasta ($24.30, 3 units) and Burger + Pasta ($29.70, 3 units).
 - **Combo choice rule**: Regular and VIP customers choose uniformly at random from all six menu items using the seeded random generator. The Critic still chooses the cheapest item, so it never orders a combo.
 - **Happy Hour**: The Manager may activate it once per game, at the start of a turn. It lasts for that turn and the next, and the start-of-turn display shows the remaining duration. Orders taken while it is active get 20% off, applied after the VIP discount and locked when the order is taken. During each active turn, customers still waiting for a table, an order or food recover 15 satisfaction at turn start, up to 100.
-
-## Reproducible Test Runs
-
-For turn-by-turn inputs to reproduce deterministic victory and defeat outcomes for stage-3, see the [Stage 3 Test Notes](test_notes/stage-3.md).
 
 ## Stage 3 Change Analysis
 
@@ -170,4 +163,4 @@ We considered moving the shared seating logic into `Staff` so that `Waiter` and 
 
 The six-step turn sequence, staff task limits, VIP and Critic behaviour, satisfaction decay, abandonment, payment and the 18-turn ending rules are unchanged. VIP orders still receive the 10% discount (for example, $19.44 for a Salad + Burger Combo), and the Critic still chooses Salad.
 
-Because the menu now contains six items and each turn has extra Happy Hour and Host prompts, the Stage 2 input sequences do not replay the same game in Stage 3. New victory and defeat runs are recorded in the [Stage 3 Test Notes](test_notes/stage-3.md), and both complete all 18 turns with the documented results.
+Because the menu now contains six items and each turn has extra Happy Hour and Host prompts, the Stage 2 input sequences do not replay the same game in Stage 3.
