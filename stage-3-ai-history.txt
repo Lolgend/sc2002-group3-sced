@@ -1,0 +1,252 @@
+INPUT:
+
+check all the docs:
+/home/1919810/Desktop/OOP_FINAL_LAB/DOCS/
+check the current repo:
+/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/
+i need to work on stage 3, tell me what im gonna do and give me ur suggestions
+
+OUTPUT:
+
+I reviewed all three documents, the Java sources, README, test notes, and UML diagrams.
+
+**Your Stage 2 implementation is ready to extend.** I compiled it targeting Java 17 and replayed both documented runs.
+
+| Check | Result |
+|---|---|
+| Victory run | 5 paid customers, **$62.10**, **73.8** average satisfaction |
+| Defeat run | 0 paid customers, $0, 1 unhappy departure |
+| Invalid input | Re-prompts correctly and preserves the victory replay |
+
+The supplied folder has **no `.git` metadata**, so I could not verify stage tags or historical commits.
+
+## 1. What you need to implement
+
+| Feature | Required behaviour |
+|---|---|
+| **Host** | Seats at most one queued customer each turn, independently of the Waiter’s task. The Waiter retains seating capability. |
+| **ComboMeal** | Contains two existing menu items. Preparation units are added together. Price is 90% of their combined price, rounded to cents. Document how customers choose combos. |
+| **Happy Hour** | Manager activates it once, at turn start. Active for that turn and the next. Display remaining duration. New orders receive 20% off after the VIP discount. Eligible waiting customers recover 15 satisfaction at each active turn’s start, capped at 100. |
+
+Orders keep the price calculated when taken. Satisfaction recovery applies to customers waiting in the queue, seated without an order, or waiting for food. The game still completes all 18 turns and uses the existing victory targets. :codex-file-citation{path="/home/1919810/Desktop/OOP_FINAL_LAB/DOCS/SC2002_Restaurant_Rush_Group_Assignment(1).docx" purpose="source"}
+
+## 2. How I suggest extending your code
+
+### Host
+
+Add **`Host extends Staff`** with seating and waiting operations.
+
+I recommend manager-controlled Host actions **before the Waiter phase**. That allows the Host to seat a customer and the Waiter to take their order during the same turn.
+
+After the Host acts, rebuild the available Waiter actions using the updated queue and tables. Share the queue-to-table seating operation between both roles.
+
+The Host’s exact position relative to the Waiter is a design choice you should document.
+
+### ComboMeal
+
+Add **`ComboMeal implements MenuItem`**, holding two component references.
+
+Your existing menu abstraction and order preparation logic already support this approach. The combo supplies its name, calculated price, and total preparation units through the existing interface. [MenuItem](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/model/MenuItem.java) · [Order](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/model/Order.java:18)
+
+I suggest registering all three distinct pairs after the existing dishes.
+
+| Combo | Price | Preparation units |
+|---|---:|---:|
+| Salad + Burger | $21.60 | 2 |
+| Salad + Pasta | $24.30 | 3 |
+| Burger + Pasta | $29.70 | 3 |
+
+Keep seeded menu selection for Regular and VIP customers, and retain the Critic’s cheapest-item preference.
+
+**Check that your demonstration actually includes a combo.** I checked the current random sequence. Adding only one fourth menu entry produces no combo selections with seed 42 when orders are taken in arrival order. With the six-item arrangement above, the second customer selects Salad + Burger.
+
+### Happy Hour
+
+Add a small **`HappyHourPolicy`** class that owns activation state, duration, and the promotional discount.
+
+Use the activation turn to determine whether the current turn is active. This makes the two-turn duration straightforward to verify.
+
+Your billing flow should be
+
+```text
+Menu item price
+→ Customer.calculateBillCents()
+→ Happy Hour discount
+→ Order stores the final price
+```
+
+The existing Waiter already delegates customer pricing, and `Order.finalPriceCents` already locks the amount. Add the promotional calculation at that creation point. [Waiter](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/staff/Waiter.java:38)
+
+Add an encapsulated satisfaction-recovery operation to `Customer`, using its existing `isWaitingForService()` check. Have `Restaurant` apply it to eligible queued and seated customers.
+
+### Main integration points
+
+| Existing class | Expected work |
+|---|---|
+| `Restaurant` | Own Host and Happy Hour state, register combos, apply recovery |
+| `GameController` | Activation prompt, turn-start effects, Host phase |
+| `Customer` | Guarded satisfaction recovery |
+| `Waiter` | Apply promotional pricing when creating an order |
+| `ConsoleUI` | Display Host choices, Happy Hour duration, recovery and pricing feedback |
+| `Main` | Update Stage 3 introduction |
+
+These class names and the Host-first arrangement are my suggested design choices.
+
+## 3. Fix this existing issue first
+
+**Staff capacity is checked after the action has changed game state.**
+
+I reproduced both cases.
+
+- Calling the Chef twice advances Pasta from **1/2 to READY**, then throws “already acted.”
+- Calling the Waiter to seat a second customer seats them and removes them from the queue, then throws.
+
+The current controller invokes each role once per turn. Before extending the staff operations, add a capacity check **before mutation**, then mark the role as having acted after successful completion. Invalid actions must preserve both game state and available capacity. [Chef](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/staff/Chef.java:23) · [Waiter](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/staff/Waiter.java:23)
+
+## 4. Suggested working order
+
+1. **Start from the actual Stage 2 Git checkout** and confirm its runnable tag.
+2. Fix staff-capacity validation and replay the existing checks.
+3. Add ComboMeal and verify prices, preparation totals, and customer selection.
+4. Add Host actions and verify independent staff capacities.
+5. Add Happy Hour pricing, recovery, duration, and CLI feedback.
+6. Record Stage 3 victory and defeat inputs with exact expected results.
+7. Update diagrams, change analysis, report, and video evidence.
+8. Verify the final checkout and publish the runnable `stage-3` tag.
+
+For Happy Hour, explicitly test activation on turn `t`, activity on `t` and `t+1`, expiry on `t+2`, rejected reactivation, satisfaction capped at 100, and previously placed orders retaining their prices.
+
+Also verify the required **VIP Burger price of $10.80**, combo rounding, abandonment, and the delay between READY, serving, eating, and payment.
+
+## 5. Submission work to include
+
+**The briefing requires three class diagrams, one for each stage, plus one complex Stage 2 or Stage 3 sequence diagram.** Your folder already contains the first two class diagrams.
+
+You also need
+
+- Stage 2 → Stage 3 change analysis with new and modified files, reasons, regression evidence, and commit or compare links.
+- A group PDF report with a separate named reflection from each member.
+- An approximately 15-minute group video, with timestamps in README.
+- Each member’s **full project-related AI conversations**, including this exchange, on their personal branch, linked from README.
+- Runnable stage tags and signed declarations.
+
+The stated deadline is **15 November 2026 at 11:59 PM Singapore time**. :codex-file-citation{path="/home/1919810/Desktop/OOP_FINAL_LAB/DOCS/SC2002_Group_Project_Briefing.pdf" purpose="source"}
+
+**My main suggestion is to develop one reproducible Stage 3 scenario alongside the implementation.** A VIP arriving on turn 4, seated by the Host, ordering a combo during Happy Hour, then progressing through cooking, serving, eating, and payment would give you material for the tests, sequence diagram, report, and video. Reserve time for those deliverables. Class and sequence diagrams together account for **45 marks**.
+
+INPUT:
+please give me ur suggestions on my current code and the diagram:
+/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/
+
+OUTPUT:
+
+**The Stage 3 gameplay works in the documented runs. I would prioritise staff validation, UML multiplicities, and diagram readability.**
+
+I reviewed local commit `21c0576`, all three class diagrams, and the Stage 2 sequence diagram.
+
+## Code suggestions
+
+### 1. Fix staff-capacity checks before changing state
+
+This issue is still present. I reproduced a second Chef action changing Pasta from **1/2 preparation to READY**, then throwing an exception. Second Host and Cashier calls also complete their changes before rejection.
+
+Add an `ensureCanAct()` check before mutation, then call `markActed()` after successful completion. Apply this consistently across the staff classes. The current controller invokes each role once per turn, which explains why the documented replays pass. [Chef](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/staff/Chef.java:23) · [Staff](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/staff/Staff.java:31)
+
+::code-comment{title="[P2] Validate capacity before preparation" body="prepareOrder advances the order before markActed checks whether the Chef has already acted. A second call in the same turn changes Pasta from 1/2 to READY before throwing. Add a capacity check before mutation, then mark the successful action. The Host, Waiter and Cashier need the same ordering." file="/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/staff/Chef.java" start=26 end=27 priority=2}
+
+### 2. Give the Host the same seating preconditions as the Waiter
+
+`Host.seatCustomer()` accepts a customer who is absent from the queue. I reproduced that successfully.
+
+Validate the arguments and queue membership before seating. Update the README explanation that says the Host does not need queue validation. Both roles perform the same queue-to-table transition. [Host](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/staff/Host.java:17) · [README](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/README.md:167)
+
+::code-comment{title="[P2] Require the customer to be queued" body="Host.seatCustomer seats the supplied customer and ignores a failed queue removal. A customer absent from the queue is therefore accepted. Validate null arguments and queue membership before changing the table or customer, matching the Waiter's seating preconditions." file="/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/staff/Host.java" start=17 end=20 priority=2}
+
+### 3. Display the state after Happy Hour recovery
+
+The start-of-turn display currently runs before activation and recovery.
+
+In the victory replay, turn 14 displays the Critic at **88 satisfaction**, then recovery changes it to **100** before staff decisions. Move the main state display after the Happy Hour start processing, or refresh it afterwards. [GameController](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/controller/GameController.java:79)
+
+### Smaller improvements
+
+- Reject negative recovery amounts. `recoverSatisfaction(-150)` currently produces **−50 satisfaction** while leaving the customer waiting. [Customer](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/model/Customer.java:87)
+- Validate both ComboMeal components in its constructor. It currently accepts `null` and fails later when queried. [ComboMeal](/home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/src/main/java/restaurant/model/ComboMeal.java:7)
+
+Your existing `MenuItem` abstraction, customer-specific billing, and locked order price already support the Stage 3 features directly.
+
+## Diagram suggestions
+
+### 1. Put multiplicities at relationship endpoints
+
+Currently, entries such as `tables 1..*` and `components 2` appear inside relationship labels. Use PlantUML’s quoted endpoint multiplicities. [Current relationships](</home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/diagrams/stage-3/Stage 3 Class Diagram.puml:410>) · [PlantUML documentation](https://plantuml.com/class-diagram)
+
+```plantuml
+Restaurant "1" *-- "1..*" Table : tables
+Restaurant "1" *-- "0..*" Order : orders
+Order "0..*" --> "1" Table : table
+Order "0..*" --> "1" MenuItem : menuItem
+ComboMeal "0..*" o-- "2" MenuItem : components
+```
+
+Apply this consistently across the three stage diagrams. The hollow aggregation diamond for ComboMeal fits the shared component objects.
+
+### 2. Compact the class-diagram layouts
+
+The Stage 3 image is **5212 × 6066 pixels**. Fitting it onto one A4 page would make the text very small.
+
+I suggest
+
+- Bringing `GameConfig` beside `Restaurant`.
+- Bringing `HostAction` beside the controller’s other action objects.
+- Grouping the staff hierarchy together.
+- Showing fewer private controller helper methods and shortening explanatory notes.
+- Using the SVG export and checking readability at the final report size.
+
+The large gaps and long connectors currently consume considerable space. [Stage 3 diagram](</home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/diagrams/stage-3/Stage 3 Class Diagram.puml>)
+
+### 3. Show the VIP’s payment explicitly in the sequence diagram
+
+The diagram shows C2’s arrival, order, cooking, and serving. Its eating completion and payment are described in a note, while the explicit payment messages belong to C1.
+
+For a clearer complete lifecycle, extend C2’s interactions through payment.
+
+- Path A finishes eating on turn 8 and pays on turn 9.
+- Path B finishes eating on turn 9 and pays on turn 10.
+
+I replayed both alternatives and confirmed the stated final averages of **73.8** and **72.8**. [Sequence diagram source](</home/1919810/Desktop/OOP_FINAL_LAB/sc2002-group3-sced/diagrams/stage-2/Stage 2 Sequence Diagram.puml:241>)
+
+## Checks and release preparation
+
+All three versions compile targeting Java 17, and all six documented victory/defeat replays match. Current Stage 3 finishes its victory run with **5 paid customers, $71.64 revenue, and 90.0 average satisfaction**. Discount stacking, combo calculations, Happy Hour expiry, and the satisfaction cap also passed focused checks.
+
+Add those focused cases to the repository’s regression evidence, especially rejected staff actions preserving state. The local repository currently has `stage-1` and `stage-2` tags. Create and publish `stage-3` on the final verified commit.
+
+INPUT:
+
+check my script, report and readme under:
+/home/1919810/Desktop/OOP_FINAL_LAB/SCRIPTS/
+fix the grammar mistake and give me some suggestions
+
+OUTPUT:
+
+Corrected grammar and sentence flow in all three originals in `/home/1919810/Desktop/OOP_FINAL_LAB/SCRIPTS/`. I also clarified technical wording about `OrderStatus`, code reuse, and Host validation.
+
+### Corrected copies
+
+:codex-file-citation{path="/home/1919810/Documents/.../SC2002 Restaurant Rush.docx" purpose="output"}
+
+- [Presentation script](/home/1919810/Documents/.../v2.txt)
+- [README](/home/1919810/Documents/.../README.md)
+
+### Main suggestions
+
+1. **Complete reflection.** Section 5.1.2 is empty. Include a specific contribution, challenge, solution, and lesson learned.
+
+2. **Update the contents list.** It includes sections 3.4 and 5.2, which are absent from the body, and omits section 3.3.4. An automatic Word table of contents would help.
+
+3. **Improve the report layout before submission.** The render contains three existing blank pages, several short spillover pages, and very small UML text. Enlarge the diagrams and check readability in the exported PDF.
+
+4. **Complete the README’s submission links.** Add stage-tag links, each member’s AI-history link, and the video link with timestamps.
+
+5. **Rehearse the script with the diagram onscreen.** Pause at the VIP calculation and the two priority branches. Explicitly mention C2’s payment on turn 9 in branch A and turn 10 in branch B.
