@@ -9,6 +9,26 @@ A turn-based command-line restaurant management game in Java (JDK 17+).
 - **Stage 3 Class Diagram:** [Stage 3 Class Diagram](diagrams/stage-3/Stage_3_Class_Diagram.png)
 - **Sequence Diagram (Stage 2):** [Sequence Diagram](diagrams/stage-2/Stage_2_Sequence_Diagram.png)
 
+## AI History
+
+| Stage | File |
+|---|---|
+| Stage 1 | [stage-1-ai-history.txt]() |
+| Stage 2 | [stage-2-ai-history.txt]() |
+| Stage 3 | [stage-3-ai-history.txt]() |
+
+## Team Contributions
+
+| Member | Stage | Main work |
+|---|---|---|
+| ZhiWei | Stage 1 | Core game (models, staff, controller, CLI), Stage 1 class diagram, reproducible runs and README instructions |
+| XieKang | Stage 2 | Customer-side billing, VIP and Critic customers, Stage 2 class diagram and sequence diagram |
+| Chuxin | Stage 3 | ComboMeal, Happy Hour and Host, Stage 3 integration and class diagram |
+
+Report, video and final README were produced jointly by all three members.
+
+---
+
 ## Prerequisites
 
 - **Java Development Kit (JDK)**: Version 17 or higher (`javac` and `java` available in `PATH`).
