@@ -4,9 +4,9 @@ A turn-based command-line restaurant management game in Java (JDK 17+).
 
 ## Diagrams
 
-- **Stage 1 Class Diagram:** [Stage 1 Class Diagram](diagrams\stage-1\Stage_1_Class_Diagram.png)
-- **Stage 2 Class Diagram:** [Stage 2 Class Diagram](diagrams\stage-2\Stage_2_Class_Diagram.png)
-- **Stage 3 Class Diagram:** [Stage 3 Class Diagram](diagrams\stage-3\Stage_3_Class_Diagram.png)
+- **Stage 1 Class Diagram:** [Stage 1 Class Diagram](diagrams/stage-1/Stage_1_Class_Diagram.png)
+- **Stage 2 Class Diagram:** [Stage 2 Class Diagram](diagrams/stage-2/Stage_2_Class_Diagram.png)
+- **Stage 3 Class Diagram:** [Stage 3 Class Diagram](diagrams/stage-3/Stage_3_Class_Diagram.png)
 - **Sequence Diagram (Stage 2):** [Sequence Diagram](diagrams/stage-2/Stage_2_Sequence_Diagram.png)
 
 ## Prerequisites
