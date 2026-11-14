@@ -15,7 +15,7 @@ A turn-based command-line restaurant management game in Java (JDK 17+).
 |---|---|
 | Stage 1 | [stage-1-ai-history.txt]() |
 | Stage 2 | [stage-2-ai-history.txt]() |
-| Stage 3 | [stage-3-ai-history.txt]() |
+| Stage 3 | [stage-3-ai-history.txt](https://github.com/Lolgend/sc2002-group3-sced/blob/chuxin/stage-3-ai-history.txt) |
 
 ## Team Contributions
 
