@@ -7,9 +7,10 @@ left to right direction
 skinparam linetype ortho
 skinparam shadowing false
 skinparam roundcorner 6
-skinparam nodesep 50
-skinparam ranksep 110
-skinparam defaultFontSize 12
+skinparam nodesep 140
+skinparam ranksep 150
+skinparam defaultFontSize 20
+skinparam Padding 6
 skinparam titleFontSize 36
 skinparam ArrowThickness 1
 skinparam class {
@@ -56,8 +57,6 @@ class ConsoleUI <<boundary>> {
     - scanner: Scanner {final}
     - out: PrintStream {final}
     --
-    + ConsoleUI()
-    + ConsoleUI(in: InputStream, out: PrintStream)
     + {static} formatMoney(cents: int): String
     + displayStartOfTurn(turn: int, restaurant: Restaurant): void
     + promptMenuChoice(promptTitle: String,\n    options: List<String>): int
@@ -77,7 +76,6 @@ class GameController <<control>> {
     - restaurant: Restaurant {final}
     - ui: ConsoleUI {final}
     --
-    + GameController(restaurant: Restaurant, ui: ConsoleUI)
     + runGame(): void
     + evaluateGameResult(): GameResult
     + runTurn(turn: int): void
@@ -112,12 +110,6 @@ class WaiterAction {
     + {static} createSeat(customer: Customer, table: Table): WaiterAction
     + {static} createTakeOrder(customer: Customer,\n    table: Table): WaiterAction
     + {static} createServeOrder(order: Order): WaiterAction
-    + getType(): WaiterActionType
-    + getDescription(): String
-    + getCustomer(): Customer
-    + getTable(): Table
-    + getOrder(): Order
-    + toString(): String
 }
 
 class ChefAction {
@@ -128,26 +120,17 @@ class ChefAction {
     - ChefAction(wait: boolean, description: String,\n    order: Order)
     + {static} createWait(): ChefAction
     + {static} createCook(order: Order): ChefAction
-    + isWait(): boolean
-    + getDescription(): String
-    + getOrder(): Order
-    + toString(): String
 }
 
 abstract class Staff <<entity>> {
     - name: String {final}
     - actedThisTurn: boolean
     --
-    # Staff(name: String)
-    + getName(): String
-    + hasActedThisTurn(): boolean
     + resetTurnState(): void
     # markActed(): void
 }
 
 class Waiter <<entity>> {
-    + Waiter()
-    + Waiter(name: String)
     + seatCustomer(customer: Customer, table: Table,\n    queue: WaitingQueue): void
     + takeOrder(orderId: int, customer: Customer,\n    table: Table, menu: Menu, random: Random): Order
     + serveOrder(order: Order, turn: int): void
@@ -155,25 +138,15 @@ class Waiter <<entity>> {
 }
 
 class Chef <<entity>> {
-    + Chef()
-    + Chef(name: String)
     + prepareOrder(order: Order): void
     + waitTurn(): void
 }
 
 class Cashier <<entity>> {
-    + Cashier()
-    + Cashier(name: String)
     + processOldestReadyPayment(tables: List<Table>): Order
 }
 
 class Restaurant <<entity>> {
-    + {static} MAX_TURNS: int = 18 {final}
-    + {static} NUM_TABLES: int = 2 {final}
-    + {static} TARGET_PAID_CUSTOMERS: int = 4 {final}
-    + {static} TARGET_REVENUE_CENTS: int = 4500 {final}
-    + {static} TARGET_AVG_SATISFACTION: double = 60.0 {final}
-    + {static} DEFAULT_SEED: long = 42L {final}
     - config: GameConfig {final}
     - waitingQueue: WaitingQueue {final}
     - tables: List<Table> {final}
@@ -191,23 +164,9 @@ class Restaurant <<entity>> {
     - totalPaidSatisfaction: int
     - abandonedCustomersCount: int
     --
-    + Restaurant()
-    + Restaurant(seed: long)
-    + Restaurant(config: GameConfig)
-    + getConfig(): GameConfig
-    + getWaitingQueue(): WaitingQueue
-    + getTables(): List<Table>
-    + getMenu(): Menu
     + getOrders(): List<Order>
-    + getWaiter(): Waiter
-    + getChef(): Chef
-    + getCashier(): Cashier
-    + getRandom(): Random
-    + getRevenueCents(): int
     + getPaidCustomersCount(): int
     + getServedCustomersCount(): int
-    + getTotalPaidSatisfaction(): int
-    + getAbandonedCustomersCount(): int
     + getAveragePaidSatisfaction(): double
     + getAveragePaidSatisfactionString(): String
     + allocateNextOrderId(): int
@@ -237,17 +196,8 @@ class GameConfig {
     - targetAvgSatisfaction: double {final}
     - seed: long {final}
     --
-    + GameConfig()
-    + GameConfig(seed: long)
-    + GameConfig(maxTurns: int, numTables: int,\n    arrivalTurns: int[], targetPaidCustomers: int,\n    targetRevenueCents: int,\n    targetAvgSatisfaction: double, seed: long)
     + {static} createBaseConfig(): GameConfig
-    + getMaxTurns(): int
-    + getNumTables(): int
     + getArrivalTurns(): int[]
-    + getTargetPaidCustomers(): int
-    + getTargetRevenueCents(): int
-    + getTargetAvgSatisfaction(): double
-    + getSeed(): long
     + isArrivalTurn(turn: int): boolean
     + isPaidTargetMet(paidCount: int): boolean
     + isRevenueTargetMet(revenueCents: int): boolean
@@ -268,7 +218,7 @@ class GameResult <<record>> {
     - satisfactionTargetMet: boolean {final}
     - abandonedCustomersCount: int {final}
     --
-    + GameResult(isVictory: boolean, paidCustomersCount: int,\n    targetPaidCustomers: int,\n    paidCustomersTargetMet: boolean, revenueCents: int,\n    targetRevenueCents: int, revenueTargetMet: boolean,\n    averagePaidSatisfaction: double,\n    targetAverageSatisfaction: double,\n    satisfactionTargetMet: boolean,\n    abandonedCustomersCount: int)
+    + GameResult(isVictory: boolean,\n    paidCustomersCount: int,\n    targetPaidCustomers: int,\n    paidCustomersTargetMet: boolean,\n    revenueCents: int,\n    targetRevenueCents: int,\n    revenueTargetMet: boolean,\n    averagePaidSatisfaction: double,\n    targetAverageSatisfaction: double,\n    satisfactionTargetMet: boolean,\n    abandonedCustomersCount: int)
     + isVictory(): boolean
     + paidCustomersCount(): int
     + targetPaidCustomers(): int
@@ -299,15 +249,10 @@ class Table <<entity>> {
     - currentCustomer: Customer
     - currentOrder: Order
     --
-    + Table(tableNumber: int)
-    + getTableNumber(): int
-    + getCurrentCustomer(): Customer
-    + getCurrentOrder(): Order
     + isFree(): boolean
     + seatCustomer(customer: Customer): void
     + assignOrder(order: Order): void
     + freeTable(): void
-    + toString(): String
 }
 
 abstract class Customer <<entity>> {
@@ -320,13 +265,6 @@ abstract class Customer <<entity>> {
     - servedTurn: int
     --
     # Customer(id: int, arrivalTurn: int)
-    + getId(): int
-    + getArrivalTurn(): int
-    + getSatisfaction(): int
-    + getState(): CustomerState
-    + getSatisfactionAtPayment(): Integer
-    + getReadyToPaySequence(): int
-    + getServedTurn(): int
     + {abstract} getCustomerType(): String
     + {abstract} getWaitingSatisfactionLoss(): int
     + chooseMenuItem(menu: Menu, random: Random): MenuItem
@@ -338,7 +276,6 @@ abstract class Customer <<entity>> {
     + markServed(turn: int): void
     + markReadyToPay(sequenceNumber: int): void
     + markPaid(): void
-    + toString(): String
 }
 
 class RegularCustomer <<entity>> {
@@ -367,15 +304,6 @@ class Order <<entity>> {
     - completedPrepUnits: int
     - status: OrderStatus
     --
-    + Order(id: int, customer: Customer, table: Table,\n    menuItem: MenuItem, finalPriceCents: int)
-    + getId(): int
-    + getCustomer(): Customer
-    + getTable(): Table
-    + getMenuItem(): MenuItem
-    + getFinalPriceCents(): int
-    + getTotalPrepUnits(): int
-    + getCompletedPrepUnits(): int
-    + getStatus(): OrderStatus
     + advancePreparation(): void
     + markServed(): void
     + markPaid(): void
@@ -394,8 +322,6 @@ enum OrderStatus <<enumeration>> {
 class Menu <<entity>> {
     - items: List<MenuItem> {final}
     --
-    + Menu(items: List<? extends MenuItem>)
-    + getItems(): List<MenuItem>
     + {static} createBaseMenu(): Menu
 }
 
@@ -411,12 +337,6 @@ class Dish <<entity>> {
     - prepUnits: int {final}
     --
     + Dish(name: String, priceCents: int, prepUnits: int)
-    + getName(): String
-    + getPriceCents(): int
-    + getPrepUnits(): int
-    + equals(o: Object): boolean
-    + hashCode(): int
-    + toString(): String
 }
 
 ' ============================================================================
