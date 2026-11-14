@@ -1,5 +1,8 @@
 @startuml Stage_3_Class_Diagram
 
+' Stage 3 = Stage 2 + Host/HostAction, HappyHour, ComboMeal.
+' All Stage 1 and Stage 2 relationships are retained (same types, labels, multiplicities).
+
 title Restaurant Rush - Stage 3 Class Diagram
 
 skinparam classAttributeIconSize 0
@@ -52,8 +55,8 @@ class Main {
 }
 
 class ConsoleUI <<boundary>> {
-    - scanner: Scanner {readOnly}
-    - out: PrintStream {readOnly}
+    - scanner: Scanner {final}
+    - out: PrintStream {final}
     --
     + {static} formatMoney(cents: int): String
     + displayStartOfTurn(turn: int,\n    restaurant: Restaurant): void
@@ -75,8 +78,8 @@ class ConsoleUI <<boundary>> {
 }
 
 class GameController <<control>> {
-    - restaurant: Restaurant {readOnly}
-    - ui: ConsoleUI {readOnly}
+    - restaurant: Restaurant {final}
+    - ui: ConsoleUI {final}
     --
     + runGame(): void
     + evaluateGameResult(): GameResult
@@ -104,11 +107,11 @@ enum WaiterActionType <<enumeration>> {
 }
 
 class WaiterAction {
-    - type: WaiterActionType {readOnly}
-    - description: String {readOnly}
-    - customer: Customer [0..1] {readOnly}
-    - table: Table [0..1] {readOnly}
-    - order: Order [0..1] {readOnly}
+    - type: WaiterActionType {final}
+    - description: String {final}
+    - customer: Customer [0..1] {final}
+    - table: Table [0..1] {final}
+    - order: Order [0..1] {final}
     --
     + {static} createWait(): WaiterAction
     + {static} createSeat(customer: Customer,\n    table: Table): WaiterAction
@@ -117,26 +120,26 @@ class WaiterAction {
 }
 
 class HostAction {
-    - wait: boolean {readOnly}
-    - description: String {readOnly}
-    - customer: Customer [0..1] {readOnly}
-    - table: Table [0..1] {readOnly}
+    - wait: boolean {final}
+    - description: String {final}
+    - customer: Customer [0..1] {final}
+    - table: Table [0..1] {final}
     --
     + {static} createWait(): HostAction
     + {static} createSeat(customer: Customer,\n    table: Table): HostAction
 }
 
 class ChefAction {
-    - wait: boolean {readOnly}
-    - description: String {readOnly}
-    - order: Order [0..1] {readOnly}
+    - wait: boolean {final}
+    - description: String {final}
+    - order: Order [0..1] {final}
     --
     + {static} createWait(): ChefAction
     + {static} createCook(order: Order): ChefAction
 }
 
 abstract class Staff <<entity>> {
-    - name: String {readOnly}
+    - name: String {final}
     - actedThisTurn: boolean
     --
     + resetTurnState(): void
@@ -165,17 +168,17 @@ class Cashier <<entity>> {
 }
 
 class Restaurant <<entity>> {
-    - config: GameConfig {readOnly}
-    - waitingQueue: WaitingQueue {readOnly}
-    - tables: List<Table> {readOnly}
-    - menu: Menu {readOnly}
-    - orders: List<Order> {readOnly}
-    - waiter: Waiter {readOnly}
-    - chef: Chef {readOnly}
-    - cashier: Cashier {readOnly}
-    - host: Host {readOnly}
-    - happyHour: HappyHour {readOnly}
-    - random: Random {readOnly}
+    - config: GameConfig {final}
+    - waitingQueue: WaitingQueue {final}
+    - tables: List<Table> {final}
+    - menu: Menu {final}
+    - orders: List<Order> {final}
+    - waiter: Waiter {final}
+    - chef: Chef {final}
+    - cashier: Cashier {final}
+    - host: Host {final}
+    - happyHour: HappyHour {final}
+    - random: Random {final}
     - nextCustomerId: int
     - nextOrderId: int
     - nextReadyToPaySeq: int
@@ -203,20 +206,20 @@ class Restaurant <<entity>> {
 }
 
 class GameConfig {
-    + {static} DEFAULT_MAX_TURNS: int = 18 {readOnly}
-    + {static} DEFAULT_NUM_TABLES: int = 2 {readOnly}
-    - {static} DEFAULT_ARRIVAL_TURNS: int[]\n    = {1, 4, 7, 10, 13, 16} {readOnly}
-    + {static} DEFAULT_TARGET_PAID_CUSTOMERS: int = 4 {readOnly}
-    + {static} DEFAULT_TARGET_REVENUE_CENTS: int = 4500 {readOnly}
-    + {static} DEFAULT_TARGET_AVG_SATISFACTION: double = 60.0 {readOnly}
-    + {static} DEFAULT_SEED: long = 42L {readOnly}
-    - maxTurns: int {readOnly}
-    - numTables: int {readOnly}
-    - arrivalTurns: int[] {readOnly}
-    - targetPaidCustomers: int {readOnly}
-    - targetRevenueCents: int {readOnly}
-    - targetAvgSatisfaction: double {readOnly}
-    - seed: long {readOnly}
+    + {static} DEFAULT_MAX_TURNS: int = 18 {final}
+    + {static} DEFAULT_NUM_TABLES: int = 2 {final}
+    - {static} DEFAULT_ARRIVAL_TURNS: int[]\n    = {1, 4, 7, 10, 13, 16} {final}
+    + {static} DEFAULT_TARGET_PAID_CUSTOMERS: int = 4 {final}
+    + {static} DEFAULT_TARGET_REVENUE_CENTS: int = 4500 {final}
+    + {static} DEFAULT_TARGET_AVG_SATISFACTION: double = 60.0 {final}
+    + {static} DEFAULT_SEED: long = 42L {final}
+    - maxTurns: int {final}
+    - numTables: int {final}
+    - arrivalTurns: int[] {final}
+    - targetPaidCustomers: int {final}
+    - targetRevenueCents: int {final}
+    - targetAvgSatisfaction: double {final}
+    - seed: long {final}
     --
     + {static} createBaseConfig(): GameConfig
     + getArrivalTurns(): int[]
@@ -228,23 +231,23 @@ class GameConfig {
 }
 
 class GameResult <<record>> {
-    - isVictory: boolean {readOnly}
-    - paidCustomersCount: int {readOnly}
-    - targetPaidCustomers: int {readOnly}
-    - paidCustomersTargetMet: boolean {readOnly}
-    - revenueCents: int {readOnly}
-    - targetRevenueCents: int {readOnly}
-    - revenueTargetMet: boolean {readOnly}
-    - averagePaidSatisfaction: double {readOnly}
-    - targetAverageSatisfaction: double {readOnly}
-    - satisfactionTargetMet: boolean {readOnly}
-    - abandonedCustomersCount: int {readOnly}
+    - isVictory: boolean {final}
+    - paidCustomersCount: int {final}
+    - targetPaidCustomers: int {final}
+    - paidCustomersTargetMet: boolean {final}
+    - revenueCents: int {final}
+    - targetRevenueCents: int {final}
+    - revenueTargetMet: boolean {final}
+    - averagePaidSatisfaction: double {final}
+    - targetAverageSatisfaction: double {final}
+    - satisfactionTargetMet: boolean {final}
+    - abandonedCustomersCount: int {final}
     --
     + getAveragePaidSatisfactionString(): String
 }
 
 class WaitingQueue <<entity>> {
-    - customers: List<Customer> {readOnly}
+    - customers: List<Customer> {final}
     --
     + addCustomer(customer: Customer): void
     + removeCustomer(customer: Customer): boolean
@@ -254,7 +257,7 @@ class WaitingQueue <<entity>> {
 }
 
 class Table <<entity>> {
-    - tableNumber: int {readOnly}
+    - tableNumber: int {final}
     - currentCustomer: Customer [0..1]
     - currentOrder: Order [0..1]
     --
@@ -265,8 +268,8 @@ class Table <<entity>> {
 }
 
 abstract class Customer <<entity>> {
-    - id: int {readOnly}
-    - arrivalTurn: int {readOnly}
+    - id: int {final}
+    - arrivalTurn: int {final}
     - satisfaction: int
     - state: CustomerState
     - satisfactionAtPayment: Integer [0..1]
@@ -316,12 +319,12 @@ enum CustomerState <<enumeration>> {
 }
 
 class Order <<entity>> {
-    - id: int {readOnly}
-    - customer: Customer {readOnly}
-    - table: Table {readOnly}
-    - menuItem: MenuItem {readOnly}
-    - finalPriceCents: int {readOnly}
-    - totalPrepUnits: int {readOnly}
+    - id: int {final}
+    - customer: Customer {final}
+    - table: Table {final}
+    - menuItem: MenuItem {final}
+    - finalPriceCents: int {final}
+    - totalPrepUnits: int {final}
     - completedPrepUnits: int
     - status: OrderStatus
     --
@@ -340,7 +343,7 @@ enum OrderStatus <<enumeration>> {
 }
 
 class Menu <<entity>> {
-    - items: List<MenuItem> {readOnly}
+    - items: List<MenuItem> {final}
     --
     + {static} createBaseMenu(): Menu
 }
@@ -352,8 +355,8 @@ interface MenuItem <<interface>> {
 }
 
 class ComboMeal <<entity>> {
-    - firstItem: MenuItem {readOnly}
-    - secondItem: MenuItem {readOnly}
+    - firstItem: MenuItem {final}
+    - secondItem: MenuItem {final}
     --
     + getName(): String
     + getPriceCents(): int
@@ -361,9 +364,9 @@ class ComboMeal <<entity>> {
 }
 
 class HappyHour <<entity>> {
-    - {static} DURATION_TURNS: int = 2 {readOnly}
-    - {static} DISCOUNT_MULTIPLIER: double = 0.8 {readOnly}
-    - {static} SATISFACTION_RECOVERY: int = 15 {readOnly}
+    - {static} DURATION_TURNS: int = 2 {final}
+    - {static} DISCOUNT_MULTIPLIER: double = 0.8 {final}
+    - {static} SATISFACTION_RECOVERY: int = 15 {final}
     - used: boolean
     - remainingTurns: int
     --
@@ -377,59 +380,76 @@ class HappyHour <<entity>> {
 }
 
 class Dish <<entity>> {
-    - name: String {readOnly}
-    - priceCents: int {readOnly}
-    - prepUnits: int {readOnly}
+    - name: String {final}
+    - priceCents: int {final}
+    - prepUnits: int {final}
 }
 
-Main -[#7C8998,dashed]-> ConsoleUI
-Main -[#7C8998,dashed]--> GameController
-Main -[#7C8998,dashed]-> Restaurant
+' --- Bootstrap
+Main ..> ConsoleUI : instantiates >
+Main ..> GameController : instantiates & runs >
+Main ..> Restaurant : instantiates >
 
-GameController --> "1" ConsoleUI
-GameController --> "1" Restaurant
-GameController -[#7C8998,dashed]-> WaiterAction
-GameController -[#7C8998,dashed]-> ChefAction
-GameController -[#7C8998,dashed]-> HostAction
-GameController -[#7C8998,dashed]-> GameResult
-ConsoleUI -[#7C8998,dashed]-> GameResult
-WaiterAction --> "1" WaiterActionType
+' --- Control
+GameController --> ConsoleUI : ui >
+GameController --> Restaurant : restaurant >
+GameController ..> WaiterAction : builds & executes >
+GameController ..> ChefAction : builds & executes >
+GameController ..> HostAction : builds & executes >
+GameController ..> GameResult : evaluates >
+ConsoleUI ..> GameResult : renders >
+WaiterAction --> WaiterActionType : type >
+WaiterAction ..> Customer
+WaiterAction ..> Table
+WaiterAction ..> Order
+HostAction ..> Customer
+HostAction ..> Table
+ChefAction ..> Order
 
-Restaurant "1" *-- "1" GameConfig
-Restaurant "1" *-- "1" WaitingQueue
-Restaurant "1" *-- "1..*" Table
-Restaurant "1" *-- "1" Menu
-Restaurant "1" *-- "0..*" Order
-Restaurant *-- "1" Waiter
-Restaurant *-- "1" Chef
-Restaurant *-- "1" Cashier
-Restaurant *-- "1" Host
-Restaurant "1" *-- "1" HappyHour
+' --- Restaurant composition
+Restaurant *-- GameConfig : config >
+Restaurant *-- WaitingQueue : waitingQueue >
+Restaurant *-- Table : tables 1..* >
+Restaurant *-- Menu : menu >
+Restaurant *-- Order : orders 0..* >
+Restaurant *-- Waiter : waiter >
+Restaurant *-- Chef : chef >
+Restaurant *-- Cashier : cashier >
+Restaurant *-- Host : host >
+Restaurant *-- HappyHour : happyHour >
 
-Staff <|-right- Waiter
-Staff <|-right- Chef
-Staff <|-right- Cashier
-Staff <|-right- Host
-Waiter -[#7C8998,dashed]-> Order
-Waiter -[#7C8998,dashed]-> HappyHour
-Chef -[#7C8998,dashed]-> Order
-Cashier -[#7C8998,dashed]-> Order
+' --- Staff
+Staff <|-- Waiter
+Staff <|-- Chef
+Staff <|-- Cashier
+Staff <|-- Host
+Waiter ..> WaitingQueue
+Waiter ..> Table
+Waiter ..> Menu
+Waiter ..> Order
+Waiter ..> HappyHour
+Host ..> WaitingQueue
+Host ..> Table
+Chef ..> Order
+Cashier ..> Table
+Cashier ..> Order
 
-WaitingQueue "0..1" o-- "0..*" Customer
-Table "0..1" o-- "0..1" Customer
-Order "0..1" -[norank]-o "0..1" Table
-Order "0..1" --> "1" Customer
-Order "0..*" --> "1" Table
-Order "0..*" --> "1" MenuItem
-Order --> "1" OrderStatus
-Menu "1" *-- "1..*" MenuItem
-Customer --> "1" CustomerState
+' --- Domain
+WaitingQueue o-- Customer : customers 0..* >
+Table o-- Customer : currentCustomer 0..1 >
+Table o-- Order : currentOrder 0..1 >
+Order --> Customer : customer >
+Order --> Table : table >
+Order --> MenuItem : menuItem >
+Order --> OrderStatus : status >
+Menu *-- MenuItem : items 1..* >
+Customer --> CustomerState : state >
 Customer <|-- RegularCustomer
 Customer <|-- VIPCustomer
 Customer <|-- CriticCustomer
 MenuItem <|.. Dish
 MenuItem <|.. ComboMeal
-ComboMeal "0..*" o-- "2" MenuItem : components
+ComboMeal o-- MenuItem : components 2 >
 
 note top of Order
   <b>Encapsulation of State and Pricing</b>
@@ -471,8 +491,6 @@ note bottom of ComboMeal
   • <i>Order</i> handles either implementation through <i>MenuItem</i>.
 end note
 
-
-
 note top of HappyHour
   <b>Encapsulated Promotion Policy</b>
   • Activation is available once per game and lasts two turns.
@@ -492,7 +510,6 @@ legend bottom right
   |<#D3F0EE>   | Interface |
   |<#ECECEC>   | Misc (bootstrap, actions, config, result) |
   Class compartments show stored attributes and key operations.
-  Parameter types identify additional dependencies.
   Restaurant configuration values are defined in GameConfig.
 endlegend
 
