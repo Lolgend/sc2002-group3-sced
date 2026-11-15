@@ -115,6 +115,12 @@ The diagram shows the restaurant service flow, VIP pricing, and how the manager'
 
 ## Stage 2 Change Analysis
 
+| Classes | Stage 1 to 2 |
+|---|---|
+| Added | 2 |
+| Modified | 4 |
+| Unchanged | 14 |
+
 ### 1. Delegate order billing to customers
 
 [Commit 61ec7a1](https://github.com/Lolgend/sc2002-group3-sced/commit/61ec7a18f5b3ca7777951304c237081e06b9b22b) modifies `Customer.java` and `Waiter.java`. `Customer` gains `calculateBillCents()`, which returns the full menu price by default and can be overridden by `VIPCustomer` to apply a 10% discount. `Waiter.takeOrder()` now delegates bill calculation to the customer instead of reading the chosen menu item's price directly.
@@ -172,6 +178,12 @@ Stage 3 adds a Host, combo meals and a Happy Hour pricing policy.
 - **Happy Hour**: The Manager may activate it once per game, at the start of a turn. It lasts for that turn and the next, and the start-of-turn display shows the remaining duration. Orders taken while it is active get 20% off, applied after the VIP discount and locked when the order is taken. During each active turn, customers still waiting for a table, an order or food recover 15 satisfaction at turn start, up to 100.
 
 ## Stage 3 Change Analysis
+
+| Classes | Stage 2 to 3 |
+|---|---|
+| Added | 4 |
+| Modified | 7 |
+| Unchanged | 13 |
 
 ### 1. Add the ComboMeal menu item
 
