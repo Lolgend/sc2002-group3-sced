@@ -6,17 +6,36 @@ A turn-based command-line restaurant management game in Java (JDK 17+).
 
 [Lolgend/sc2002-group3-sced](https://github.com/Lolgend/sc2002-group3-sced)
 
+## Stage Versions
+
+| Stage | Runnable snapshot |
+|---|---|
+| Stage 1 | [stage-1](https://github.com/Lolgend/sc2002-group3-sced/tree/stage-1) |
+| Stage 2 | [stage-2](https://github.com/Lolgend/sc2002-group3-sced/tree/stage-2) |
+| Stage 3 | [stage-3](https://github.com/Lolgend/sc2002-group3-sced/tree/stage-3) |
+
+Stage comparisons:
+
+- [Stage 1 → Stage 2](https://github.com/Lolgend/sc2002-group3-sced/compare/stage-1...stage-2)
+- [Stage 2 → Stage 3](https://github.com/Lolgend/sc2002-group3-sced/compare/stage-2...stage-3)
+
 ## Video Timestamps
 
 Video can be found [HERE](https://github.com/Lolgend/sc2002-group3-sced/blob/main/Video%20Presentation.mp4)
 
 | Timestamp | Content |
 |---|---|
-| 00:00 | Game Overview and Three Stages |
-| 01:30 | Gameplay Demonstration & Key Outcomes | 
-| 05:35 | Class Diagrams & Evidence of Stage Changes |
-| 09:50 | Selected Use Case & Sequence Diagram |
-| 12:48 | Individual Contributions & Key Learning |
+| 01:30 | Game launch and base settings |
+| 01:40–03:14 | Dish lifecycle: READY → SERVED → eating → READY_TO_PAY → payment |
+| 02:16 | Manager priority choice under limited staff tasks |
+| 03:14 | Customer behaviour (VIP discount) |
+| 04:00 | Stage 3 feature (Happy Hour) |
+| 04:47 | Game outcome (Victory) |
+| 05:10 | Game outcome (Defeat) |
+| 05:35 | Class diagrams (Stages 1–3) |
+| 07:25 | Stage comparison (Stage 1 → Stage 2) |
+| 08:30 | Stage comparison (Stage 2 → Stage 3) |
+| 09:50 | Sequence diagram (Stage 2) |
 
 ## Diagrams
 
