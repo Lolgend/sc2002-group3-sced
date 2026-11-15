@@ -29,9 +29,9 @@ Video can be found [HERE](https://github.com/Lolgend/sc2002-group3-sced/blob/mai
 
 | Stage | File |
 |---|---|
-| Stage 1 | [stage-1-ai-history.txt]() |
-| Stage 2 | [stage-2-ai-history.txt](https://github.com/Lolgend/sc2002-group3-sced/blob/xiekang/stage-2-ai-history.txt) |
-| Stage 3 | [stage-3-ai-history.txt](https://github.com/Lolgend/sc2002-group3-sced/blob/chuxin/stage-3-ai-history.txt) |
+| Stage 1 | [ZhiWei's AI history](https://github.com/Lolgend/sc2002-group3-sced/blob/lumzhiwei/ai-history/stage-1/chat-01.md) |
+| Stage 2 | [Xie Kang's AI history](https://github.com/Lolgend/sc2002-group3-sced/blob/xiekang/stage-2-ai-history.txt) |
+| Stage 3 | [Chuxin's AI history](https://github.com/Lolgend/sc2002-group3-sced/blob/chuxin/stage-3-ai-history.txt), [ZhiWei's review history](https://github.com/Lolgend/sc2002-group3-sced/blob/lumzhiwei/ai-history/stage-3/chat-01.md) |
 
 ## Team Contributions
 
@@ -42,6 +42,8 @@ Video can be found [HERE](https://github.com/Lolgend/sc2002-group3-sced/blob/mai
 | Chuxin | Stage 3 | ComboMeal, Happy Hour and Host, Stage 3 integration and class diagram |
 
 Report, video and final README were produced jointly by all three members.
+
+Note: The fourth member, DENZELL TEO KAI FENG, did not participate in the project or communicate with the team.
 
 ---
 
