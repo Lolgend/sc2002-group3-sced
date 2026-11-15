@@ -34,8 +34,9 @@ Video can be found [HERE](https://github.com/Lolgend/sc2002-group3-sced/blob/mai
 | 05:10 | Game outcome (Defeat) |
 | 05:35 | Class diagrams (Stages 1–3) |
 | 07:25 | Stage comparison (Stage 1 → Stage 2) |
-| 08:30 | Stage comparison (Stage 2 → Stage 3) |
+| 08:30 | Change map / Stage comparison (Stage 2 → Stage 3) |
 | 09:50 | Sequence diagram (Stage 2) |
+| 12:45 | Individual contributions & key learning |
 
 ## Diagrams
 
