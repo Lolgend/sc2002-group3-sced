@@ -3,11 +3,138 @@ Xie Kang
 
 Repository: https://github.com/Lolgend/sc2002-group3-sced
 
-Selected exchanges, translated from Chinese and condensed for readability. Each INPUT / OUTPUT pair combines related exchanges from the actual project conversation; these are edited summaries, not verbatim quotations or a complete transcript.
+Translated from Chinese. Formatting has been standardised for readability.
 
-AI assistance included implementation guidance and code examples, code review and replay verification, UML generation and revision, and documentation drafting and editing. The selections below record the student's specific requests and decisions alongside that assistance. They concern the current repository.
+AI assistance included implementation guidance and code examples, code review and replay verification, UML generation and revision, and documentation drafting and editing. The entries below record the student's specific requests and decisions alongside that assistance. They concern the current repository.
 
-1. Refining the six change-analysis entries
+1. Extending the existing billing flow for Stage 2
+
+INPUT:
+For the first Stage 2 change, what should I modify in Customer.java and Waiter.java, and why? I will make the changes myself in IntelliJ. Keep the approach consistent with the Stage 1 code style.
+
+OUTPUT:
+Stage 1 uses the menu price directly because all customers pay the full price. Stage 2 introduces customer-specific billing, so the recommended change is to give Customer a calculateBillCents() method whose default implementation returns the menu item's full price.
+
+Waiter.takeOrder() should then obtain the bill through the customer instead of reading the menu price directly. This keeps the waiter responsible for taking the order while allowing customer subclasses to define their own billing rules.
+
+Regular and Critic customers can inherit the default full-price calculation. VIPCustomer can override it to apply the required discount. Order can continue storing the calculated amount in its existing finalPriceCents field, preserving the price for later payment.
+
+This establishes the extension point before adding the VIP discount. At this step, the existing Regular-customer game should behave exactly as before, so the original victory and defeat replays provide a useful regression check.
+
+INPUT:
+I have modified Customer.java and Waiter.java. Please check them and run the original victory and defeat replays. If everything is correct, give me the commit and push commands for these two files only. I will execute them myself.
+
+OUTPUT:
+Both changes were checked, and the project compiled with Java 17. The original replays retained their results:
+
+- Victory: 18 turns, five paid customers, $63.00 revenue, average satisfaction 74.4 and no unhappy departures.
+- Defeat: 18 turns, no paid customers, $0.00 revenue, average satisfaction N/A and two unhappy departures.
+
+These results support that the new billing call preserved the existing behaviour before mixed customer arrivals were introduced.
+
+---
+
+2. Checking that the VIP discount reaches the actual payment
+
+INPUT:
+I have modified VIPCustomer.java. Please check whether a VIP's Burger order and actual payment are both 1350 cents, then run the original victory and defeat replays. If everything is correct, give me the commit and push commands for this file only. I will execute them myself.
+
+OUTPUT:
+The project compiled with Java 17. The verification followed the bill through ordering and payment:
+
+- Waiter created the VIP's Burger order with a locked price of 1350 cents.
+- When Cashier processed payment, the restaurant's revenue increased by the same 1350 cents.
+- The VIP's waiting penalty remained five satisfaction points.
+
+The original victory replay still completed 18 turns with five paid customers, $63.00 revenue and average satisfaction 74.4. The original defeat replay still completed 18 turns with no payments, $0.00 revenue, average satisfaction N/A and two unhappy departures.
+
+VIP customers had not yet been connected to the arrival arrangement, which explains why those original replay results remained unchanged. The separate VIP check verified the discount through both order creation and payment.
+
+---
+
+3. Adding Critic behaviour while reusing the customer lifecycle
+
+INPUT:
+What should I add for the next change, covering the Critic customer's identity and waiting penalty?
+
+OUTPUT:
+Add CriticCustomer as a subclass of Customer, following the structure already used by RegularCustomer and VIPCustomer.
+
+Its constructor should pass the customer ID and arrival turn to the parent constructor. Override getCustomerType() to identify it as a Critic and getWaitingSatisfactionLoss() to return 12.
+
+The existing customer lifecycle already calls getWaitingSatisfactionLoss() when applying waiting decay. Therefore, the Critic can reuse the parent's state transitions, satisfaction reduction and abandonment handling while supplying a different penalty.
+
+The Critic pays the full price, so it does not need to override calculateBillCents(). It can inherit the default calculation introduced in the earlier billing change.
+
+Keep the distinct menu preference as the next separate change. This makes it easier to verify the Critic's identity, waiting penalty and inherited billing before introducing its item-selection rule.
+
+INPUT:
+I have written CriticCustomer.java. Please check whether it loses 12 satisfaction points and pays the full price, then run the original victory and defeat replays. I will handle the commit and push myself.
+
+OUTPUT:
+The project compiled with Java 17. Calling the waiting-decay behaviour through a Customer reference reduced the Critic's satisfaction from 100 to 88.
+
+A Critic's Burger order was priced at 1500 cents, and the restaurant received 1500 cents when payment was processed. This confirmed that the subclass inherited full-price billing.
+
+The original victory and defeat replays also retained their results. The Critic's waiting behaviour could therefore be added without changing the shared service flow.
+
+---
+
+4. Understanding whether an unused Random parameter affects substitutability
+
+INPUT:
+The parent chooseMenuItem() method uses random, but the Critic chooses the cheapest item without using it. Does this difference conflict with the Liskov Substitution Principle (LSP)?
+
+OUTPUT:
+The important distinction is between not using a parameter and not satisfying the parent method's contract.
+
+CriticCustomer still declares chooseMenuItem(Menu menu, Random random). It retains the parameter so that its method matches and overrides the parent method. The waiter can therefore continue making the same call through a Customer reference.
+
+The Critic's implementation follows a different selection rule, but it still returns a menu item through the same method interface. In this design, different customer preferences are an intended variation. Not using the random generator does not, by itself, violate the Liskov Substitution Principle (LSP).
+
+Removing the Random parameter would be a different issue. That would create a method with a different signature rather than override the existing two-parameter method. The waiter's existing call would not dispatch to that new method.
+
+Matching the signature enables overriding, but LSP also concerns behaviour: the subclass must remain usable under the expectations established for Customer. Here, the fixed cheapest-item preference is compatible with the intended customer-selection variation.
+
+INPUT:
+Then why is our game reproducible? Is it because we use a seed?
+
+OUTPUT:
+Yes. Restaurant creates the random generator using the configured seed, and GameConfig supplies the default seed 42L.
+
+A seeded Random produces a repeatable sequence. Starting again with the same configuration, manager inputs and order of random calls therefore reproduces the same selections.
+
+The fixed seed does not mean every customer orders the same dish. It means the sequence can be repeated. Different manager actions or a different order of random calls can still produce different results.
+
+The Critic's cheapest-item selection is deterministic independently of the random generator. It keeps the parameter for method compatibility but does not consume a random value when selecting an item.
+
+---
+
+5. Comparing a setup change with extension through inheritance
+
+INPUT:
+This is an OODP project. Saying that Stage 1 is no longer needed does not seem like enough reason to modify its code. If we can change earlier code freely in Stage 2, how does that demonstrate evolution and extensibility?
+
+OUTPUT:
+Keeping a Stage 1 tag preserves a historical version, but it does not demonstrate that the design is extensible. The reason for modifying the creation method should be based on responsibilities and the scope of the change.
+
+In this implementation, several variations already use extension points:
+
+- VIP and Critic waiting penalties override the existing penalty method while reusing the parent's decay process.
+- The Critic overrides chooseMenuItem(), while the waiter continues calling through Customer.
+- VIP billing uses the new customer-side pricing method. This required adding an extension point and changing the waiter's price lookup, so it should be described as design evolution rather than something Stage 1 already supported completely.
+
+For arrivals, both approaches have a design rationale.
+
+Updating Restaurant.createCustomer() directly confines the change to the setup that determines which customer objects enter the game. Arrival timing, ID allocation, queue insertion and the shared service flow remain reusable. Manual §4.4 anticipates small registration or setup changes.
+
+Adding MixedCustomerRestaurant would use the existing protected createCustomer() method as an inheritance extension point. The subclass could override customer creation while leaving Restaurant unchanged. This demonstrates extension through overriding, but it adds another restaurant class for the fixed arrival arrangement.
+
+The direct update is therefore reasonable because the creation setup changes locally while stable business behaviour is reused. “Stage 1 is no longer needed” is not the design justification.
+
+---
+
+6. Refining the six change-analysis entries
 
 INPUT:
 Keep six numbered entries, each beginning with the commit link and affected files, followed by what changed and why. I want the explanation to follow the design decisions rather than repeat definitions of OODP principles.
@@ -19,7 +146,9 @@ For Change 6, include the alternative we discussed: a MixedCustomerRestaurant su
 OUTPUT:
 I revised the six entries using these directions and checked their file and commit references. The explanations connect billing delegation to the later VIP override, recognise the waiting-penalty extension point already present in Customer, and avoid repeating the same principle in every entry. I also helped phrase the final arrival decision: createCustomer() determines which objects enter the game, while their waiting, selection and billing behaviour remains in the customer subclasses. This records the agreed local setup change and the reason the additional restaurant subclass was not retained.
 
-2. Reviewing and improving the Stage 2 class diagram
+---
+
+7. Reviewing and improving the Stage 2 class diagram
 
 INPUT:
 Use the existing Stage 1 diagram as the basis for Stage 2, preserve its colours and main class arrangement, and keep the Stage 1 original when creating the new diagram. My concern is that too many methods make the important operations difficult to identify, especially as later stages add more classes. Following our team discussion, retain the attributes and key operations, omit routine getters and setters, and show the configuration constants in GameConfig without repeating them in Restaurant.
@@ -29,7 +158,64 @@ Reducing the methods also makes the boxes smaller and the lines crowded, so do n
 OUTPUT:
 I generated and revised the diagram with VIPCustomer, CriticCustomer and the billing extension, then adjusted its content and layout through the student's review. I helped check the associations and multiplicities, including the distinction between Table.currentOrder and Order.table, and retained methods needed to show polymorphic behaviour. PNG and PlantUML files were supplied for review, with SVG preserving precise visual positioning; a new PlantUML render may arrange the same model differently.
 
-3. Revising the sequence diagram around the Manager's priority choice
+---
+
+8. Considering null-check consistency and the smallest corresponding change
+
+INPUT:
+My teammate suggested making the null checks in Customer.calculateBillCents() and CriticCustomer.chooseMenuItem() consistent with the existing code. What does that suggestion mean, and do you agree with it?
+
+OUTPUT:
+Customer.chooseMenuItem() explicitly checks that menu and random are not null. CriticCustomer overrides the whole method, so those parent-method checks do not run automatically. Customer.calculateBillCents() also originally called item.getPriceCents() without an explicit item check.
+
+The normal ordering path already checks menu and random in Waiter.takeOrder(), so the suggestion identifies a consistency issue rather than a demonstrated failure during normal gameplay.
+
+Checking arguments that the method actually uses, such as menu and item, can provide clearer error messages. Without those explicit checks, calling a method on a null value would still fail, but the failure would occur at the dereference.
+
+The Critic does not use random for its cheapest-item rule. My initial recommendation was therefore to distinguish useful validation from checks added solely for consistency, rather than automatically copying every check from the parent.
+
+INPUT:
+If we adopt his suggestion, what is the smallest change?
+
+OUTPUT:
+The smallest change affects two files:
+
+- Add an item null check at the beginning of Customer.calculateBillCents().
+- Add menu and random null checks at the beginning of CriticCustomer.chooseMenuItem(), together with the Objects import.
+
+The Critic's selection algorithm remains unchanged. The random check follows the team's decision to keep the parent's non-null convention consistent, even though the Critic does not use the generator.
+
+VIPCustomer does not need another check because it calls super.calculateBillCents(item), which now performs the validation. Waiter does not need to change for this adjustment.
+
+This keeps the agreed consistency change local without altering pricing, menu preference or the shared service flow.
+
+---
+
+9. Deciding which getters help explain the diagrams
+
+INPUT:
+You seem to have retained some getters. Can you explain why?
+
+OUTPUT:
+The decision should depend on what a method communicates, rather than whether its name begins with get.
+
+Some getter-style methods express polymorphic rules. For example, getWaitingSatisfactionLoss() and getCustomerType() have different implementations in the customer subclasses, so showing them helps explain the variation between customer types.
+
+Others calculate or locate something rather than simply return a field. Examples include getServedCustomersCount(), getAveragePaidSatisfaction() and getLowestNumberedFreeTable().
+
+Collection accessors such as getOrders(), getCustomers() and getArrivalTurns() can help explain encapsulation when they return an unmodifiable view or a defensive copy. However, these accessors can still be omitted from the class diagram if they make it too crowded and the relevant design information is already clear.
+
+The sequence diagram has a different purpose. A getter may be useful there because its returned value explains a specific interaction:
+
+- getSatisfactionAtPayment() identifies the satisfaction snapshot used in the final statistics.
+- getFinalPriceCents() shows that payment uses the price already locked in the order.
+- getWaitingSatisfactionLoss() shows how the VIP waiting penalty is obtained through polymorphism.
+
+A class diagram can omit routine accessors while a sequence diagram still shows accessor calls that matter to the selected scenario.
+
+---
+
+10. Revising the sequence diagram around the Manager's priority choice
 
 INPUT:
 Use the lecture-slide style. I want to review the calls in order and avoid making the diagram longer just to include extra fragments. My proposed focus is one connected restaurant-service scene in Turns 4-8: use C1 to demonstrate eating completion and payment, and C2 to demonstrate arrival, seating, ordering, preparation and service. Add a short explanation of Turns 1-3 and a later note that C2 follows the same completion and payment process illustrated for C1.
