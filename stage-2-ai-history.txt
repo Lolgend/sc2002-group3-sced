@@ -1,0 +1,42 @@
+SC2002 Restaurant Rush - Stage 2 AI History
+Xie Kang
+
+Repository: https://github.com/Lolgend/sc2002-group3-sced
+
+Selected exchanges, translated from Chinese and condensed for readability. Each INPUT / OUTPUT pair combines related exchanges from the actual project conversation; these are edited summaries, not verbatim quotations or a complete transcript.
+
+AI assistance included implementation guidance and code examples, code review and replay verification, UML generation and revision, and documentation drafting and editing. The selections below record the student's specific requests and decisions alongside that assistance. They concern the current repository.
+
+1. Refining the six change-analysis entries
+
+INPUT:
+Keep six numbered entries, each beginning with the commit link and affected files, followed by what changed and why. I want the explanation to follow the design decisions rather than repeat definitions of OODP principles.
+
+For Change 1, explain that Customer.calculateBillCents() returns the full menu price by default and can be overridden, while Waiter.takeOrder() delegates billing to the customer. For Change 3, connect the benefit of that responsibility allocation under the Single Responsibility Principle (SRP) to the subclass extension discussed under the Open-Closed Principle (OCP). Explain why adding the VIP discount then needs no further change to Waiter or Order. Keep the later Critic entries shorter where the explanation would repeat earlier points, and explain why its unused random parameter remains in the method signature.
+
+For Change 6, include the alternative we discussed: a MixedCustomerRestaurant subclass versus updating createCustomer() directly. I initially favoured preserving the old implementation through a subclass, then discussed the choice with my teammate and accepted the direct update. Present the reasoning as a change to the new stage's creation setup, with the stable service flow still reusable, rather than suggesting that old code can be changed freely simply because Stage 1 is over.
+
+OUTPUT:
+I revised the six entries using these directions and checked their file and commit references. The explanations connect billing delegation to the later VIP override, recognise the waiting-penalty extension point already present in Customer, and avoid repeating the same principle in every entry. I also helped phrase the final arrival decision: createCustomer() determines which objects enter the game, while their waiting, selection and billing behaviour remains in the customer subclasses. This records the agreed local setup change and the reason the additional restaurant subclass was not retained.
+
+2. Reviewing and improving the Stage 2 class diagram
+
+INPUT:
+Use the existing Stage 1 diagram as the basis for Stage 2, preserve its colours and main class arrangement, and keep the Stage 1 original when creating the new diagram. My concern is that too many methods make the important operations difficult to identify, especially as later stages add more classes. Following our team discussion, retain the attributes and key operations, omit routine getters and setters, and show the configuration constants in GameConfig without repeating them in Restaurant.
+
+Reducing the methods also makes the boxes smaller and the lines crowded, so do not treat removing text as the whole solution. Increase class spacing and the canvas where needed. I identified specific areas to adjust: move Cashier upward, widen Chef and Main to separate connection points, and move Customer rightward where labels overlap Table. Remove unnecessary relationship names, but keep those needed to distinguish different roles. Check every multiplicity's meaning and position against the code. Give me PNG and editable source files locally so I can review the result before a commit.
+
+OUTPUT:
+I generated and revised the diagram with VIPCustomer, CriticCustomer and the billing extension, then adjusted its content and layout through the student's review. I helped check the associations and multiplicities, including the distinction between Table.currentOrder and Order.table, and retained methods needed to show polymorphic behaviour. PNG and PlantUML files were supplied for review, with SVG preserving precise visual positioning; a new PlantUML render may arrange the same model differently.
+
+3. Revising the sequence diagram around the Manager's priority choice
+
+INPUT:
+Use the lecture-slide style. I want to review the calls in order and avoid making the diagram longer just to include extra fragments. My proposed focus is one connected restaurant-service scene in Turns 4-8: use C1 to demonstrate eating completion and payment, and C2 to demonstrate arrival, seating, ordering, preparation and service. Add a short explanation of Turns 1-3 and a later note that C2 follows the same completion and payment process illustrated for C1.
+
+For the Manager's decision, compare the same two tasks in a different order: serve C2 on Turn 7 and seat C3 on Turn 8, or seat C3 on Turn 7 and serve C2 on Turn 8. Keep this difference in one alt fragment, give each path an end-of-Turn-8 state note, and draw the later shared flow once. Make the branch descriptions state both actions so the sequence is obvious.
+
+I also questioned the unexplained victory ending. State the remaining replay assumptions and show the actual difference in final statistics rather than implying that one early choice guarantees victory. Use consistent activation bars, omit return arrows for void methods, and label omitted routine actions clearly.
+
+OUTPUT:
+I generated and reworked the sequence diagram around this proposed scene, checked the message order and revised the notation following review. C2's VIP Salad bill is locked at $8.10. The two paths leave C2 at satisfaction 85 or 80, with different eating/payment states at the end of Turn 8. With the specified remaining replay choices, both finish in victory with five paid customers and $62.10 revenue, but their final average satisfaction is 73.8 or 72.8. I added these assumptions and results alongside the single shared continuation.
