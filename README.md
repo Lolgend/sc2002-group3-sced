@@ -6,6 +6,15 @@ A turn-based command-line restaurant management game in Java (JDK 17+).
 
 [Lolgend/sc2002-group3-sced](https://github.com/Lolgend/sc2002-group3-sced)
 
+## Video Timestamps
+| Timestamp | Content |
+|---|---|
+| 00:00 | Game Overview and Three Stages |
+| 01:30 | Gameplay Demonstration & Key Outcomes | 
+| 05:35 | Class Diagrams & Evidence of Stage Changes |
+| 09:50 | Selected Use Case & Sequence Diagram |
+| 12:48 | Individual Contributions & Key Learning |
+
 ## Diagrams
 
 - **Stage 1 Class Diagram:** [Stage 1 Class Diagram](diagrams/stage-1/Stage_1_Class_Diagram.png)
