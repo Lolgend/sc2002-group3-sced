@@ -391,14 +391,14 @@ Main ..> GameController : instantiates & runs >
 Main ..> Restaurant : instantiates >
 
 ' --- Control
-GameController --> ConsoleUI : ui >
-GameController --> Restaurant : restaurant >
+GameController "0..*" --> "1" ConsoleUI : ui >
+GameController "0..*" --> "1" Restaurant : restaurant >
 GameController ..> WaiterAction : builds & executes >
 GameController ..> ChefAction : builds & executes >
 GameController ..> HostAction : builds & executes >
 GameController ..> GameResult : evaluates >
 ConsoleUI ..> GameResult : renders >
-WaiterAction --> WaiterActionType : type >
+WaiterAction "0..*" --> "1" WaiterActionType : type >
 WaiterAction ..> Customer
 WaiterAction ..> Table
 WaiterAction ..> Order
@@ -407,16 +407,16 @@ HostAction ..> Table
 ChefAction ..> Order
 
 ' --- Restaurant composition
-Restaurant *-- GameConfig : config >
-Restaurant *-- WaitingQueue : waitingQueue >
-Restaurant *-- Table : tables 1..* >
-Restaurant *-- Menu : menu >
-Restaurant *-- Order : orders 0..* >
-Restaurant *-- Waiter : waiter >
-Restaurant *-- Chef : chef >
-Restaurant *-- Cashier : cashier >
-Restaurant *-- Host : host >
-Restaurant *-- HappyHour : happyHour >
+Restaurant "1" *-- "1" GameConfig : config >
+Restaurant "1" *-- "1" WaitingQueue : waitingQueue >
+Restaurant "1" *-- "1..*" Table : tables >
+Restaurant "1" *-- "1" Menu : menu >
+Restaurant "1" *-- "0..*" Order : orders >
+Restaurant "1" *-- "1" Waiter : waiter >
+Restaurant "1" *-- "1" Chef : chef >
+Restaurant "1" *-- "1" Cashier : cashier >
+Restaurant "1" *-- "1" Host : host >
+Restaurant "1" *-- "1" HappyHour : happyHour >
 
 ' --- Staff
 Staff <|-- Waiter
@@ -435,21 +435,21 @@ Cashier ..> Table
 Cashier ..> Order
 
 ' --- Domain
-WaitingQueue o-- Customer : customers 0..* >
-Table o-- Customer : currentCustomer 0..1 >
-Table o-- Order : currentOrder 0..1 >
-Order --> Customer : customer >
-Order --> Table : table >
-Order --> MenuItem : menuItem >
-Order --> OrderStatus : status >
-Menu *-- MenuItem : items 1..* >
-Customer --> CustomerState : state >
+WaitingQueue "0..1" o-- "0..*" Customer : customers >
+Table "0..1" o-- "0..1" Customer : currentCustomer >
+Table "0..1" o-- "0..1" Order : currentOrder >
+Order "0..1" --> "1" Customer : customer >
+Order "0..*" --> "1" Table : table >
+Order "0..*" --> "1" MenuItem : menuItem >
+Order "0..*" --> "1" OrderStatus : status >
+Menu "1" *-- "1..*" MenuItem : items >
+Customer "0..*" --> "1" CustomerState : state >
 Customer <|-- RegularCustomer
 Customer <|-- VIPCustomer
 Customer <|-- CriticCustomer
 MenuItem <|.. Dish
 MenuItem <|.. ComboMeal
-ComboMeal o-- MenuItem : components 2 >
+ComboMeal "0..*" o-- "2" MenuItem : components >
 
 note top of Order
   <b>Encapsulation of State and Pricing</b>
